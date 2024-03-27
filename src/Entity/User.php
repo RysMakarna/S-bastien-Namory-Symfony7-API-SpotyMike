@@ -124,7 +124,7 @@ class User
 
         return $this;
     }
-
+/*
     public function getEmail2(): ?string
     {
         return $this->Email2;
@@ -147,7 +147,7 @@ class User
         $this->test = $test;
 
         return $this;
-    }
+    }*/
 
     public function UserSerializer(){
         return[
