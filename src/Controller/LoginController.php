@@ -14,7 +14,7 @@ class LoginController extends AbstractController
     private $entityManager;
     private $repository;
 
-    public function __contruct(EntityManagerInterface $entityManager){
+    public function __construct(EntityManagerInterface $entityManager){
         $this->entityManager = $entityManager;
         $this->repository = $entityManager->getRepository(User::class);
     }
@@ -31,7 +31,7 @@ class LoginController extends AbstractController
     #[Route('/login', name: 'app_login_post', methods: ['POST', 'PUT'])]
     public function login(Request $request): JsonResponse
     {
-        $user = $this->repository->findOneBy(["email"=>"slopez@orange.fr"]);
+        $user = $this->repository->findOneBy(["Email"=>"slopez@orange.fr"]);
         return $this->json([
             'user' => json_encode($user),
             'data' => $request->getContent(),
