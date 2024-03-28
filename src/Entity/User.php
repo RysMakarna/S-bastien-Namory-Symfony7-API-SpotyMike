@@ -124,4 +124,38 @@ class User
 
         return $this;
     }
+<<<<<<< HEAD
+=======
+
+    public function getEmail2(): ?string
+    {
+        return $this->Email2;
+    }
+
+    public function setEmail2(string $Email2): static
+    {
+        $this->Email2 = $Email2;
+
+        return $this;
+    }
+
+    public function getTest(): ?string
+    {
+        return $this->test;
+    }
+
+    public function setTest(string $test): static
+    {
+        $this->test = $test;
+
+        return $this;
+    }
+
+    public function UserSerializer(){
+        return[
+            "name"=>$this->getName(),
+            "email"=>$this->getEmail(),
+        ];
+    }
+>>>>>>> 49e6f55b876c196263d890b61345d0004317a9e6
 }
