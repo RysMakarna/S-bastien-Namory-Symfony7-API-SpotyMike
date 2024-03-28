@@ -116,4 +116,12 @@ class Artist
 
         return $this;
     }
+
+    public function ArtistSerializer(){
+        return[
+            "fullname"=>$this->getFullname(),
+            "label"=>$this->getLabel(),
+            "description"=>$this->getDescription(),            
+        ];
+    }
 }
