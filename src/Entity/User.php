@@ -113,38 +113,14 @@ class User
         return $this;
     }
 
-    public function getIdUser(): ?int
+    public function getIdUser(): ?string
     {
         return $this->idUser;
     }
 
-    public function setIdUser(int $idUser): static
+    public function setIdUser(string $idUser): static
     {
         $this->idUser = $idUser;
-
-        return $this;
-    }
-
-    public function getEmail2(): ?string
-    {
-        return $this->Email2;
-    }
-
-    public function setEmail2(string $Email2): static
-    {
-        $this->Email2 = $Email2;
-
-        return $this;
-    }
-
-    public function getTest(): ?string
-    {
-        return $this->test;
-    }
-
-    public function setTest(string $test): static
-    {
-        $this->test = $test;
 
         return $this;
     }
