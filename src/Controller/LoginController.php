@@ -41,35 +41,4 @@ class LoginController extends AbstractController
         ]);
     }
 
-    #[Route('/add/user', name: 'app_login_post', methods: ['POST'])]
-    public function AddUser(Request $request): JsonResponse
-    {
-        $id_user = $this->repository->count();
-        $email = $request->get('email');
-        $existingUser = $this->repository->findOneBy(['Email' => $email]);
-
-        if ($existingUser) {
-            return $this->json([
-                "message" => 'L utilisateur existe',
-            ]);
-        }
-        $user = new User();
-        $user->setEmail($request->get('email'));
-        $user->setName($request->get('name'));
-        //$encrypte = password_hash($request->get('encrypte'), PASSWORD_DEFAULT);        
-        $user->setEncrypte($request->get('encrypte'));
-        $user->setTel($request->get('tel'));
-        $user->setIdUser($id_user+1);
-        $user->setCreatedAt(new \DateTimeImmutable());
-        $user->setUpdatedAt(new \DateTime());
-
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
-
-        return $this->json([
-            'user' => $user->UserSerializer(),
-            'message' => 'Ajouter  avec  succès',
-        ]);
-
-    }
 }

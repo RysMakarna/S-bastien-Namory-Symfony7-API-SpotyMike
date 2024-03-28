@@ -7,7 +7,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\Table(name: '`user`')]
 class User
 {
     #[ORM\Id]
@@ -15,144 +14,134 @@ class User
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 80)]
-    private ?string $Email = null;
+    // #[ORM\Id]
+    #[ORM\Column(length: 90)]
+    private ?string $idUser = null;
 
     #[ORM\Column(length: 55)]
-    private ?string $Name = null;
+    private ?string $name = null;
+
+    #[ORM\Column(length: 80)]
+    private ?string $email = null;
 
     #[ORM\Column(length: 90)]
-    private ?string $Encrypte = null;
+    private ?string $encrypte = null;
 
     #[ORM\Column(length: 15, nullable: true)]
-    private ?string $Tel = null;
+    private ?string $tel = null;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $CreatedAt = null;
+    private ?\DateTimeImmutable $createAt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $UpdatedAt = null;
+    private ?\DateTimeInterface $updateAt = null;
 
-    #[ORM\Column(length: 55)]
-    private ?string $idUser = null;
+    #[ORM\OneToOne(mappedBy: 'User_idUser', cascade: ['persist', 'remove'])]
+    private ?Artist $artist = null;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getEmail(): ?string
+    public function getIdUser(): ?string
     {
-        return $this->Email;
+        return $this->idUser;
     }
 
-    public function setEmail(string $Email): static
+    public function setIdUser(string $idUser): static
     {
-        $this->Email = $Email;
+        $this->idUser = $idUser;
 
         return $this;
     }
 
     public function getName(): ?string
     {
-        return $this->Name;
+        return $this->name;
     }
 
-    public function setName(string $Name): static
+    public function setName(string $name): static
     {
-        $this->Name = $Name;
+        $this->name = $name;
+
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(string $email): static
+    {
+        $this->email = $email;
 
         return $this;
     }
 
     public function getEncrypte(): ?string
     {
-        return $this->Encrypte;
+        return $this->encrypte;
     }
 
-    public function setEncrypte(string $Encrypte): static
+    public function setEncrypte(string $encrypte): static
     {
-        $this->Encrypte = $Encrypte;
+        $this->encrypte = $encrypte;
 
         return $this;
     }
 
     public function getTel(): ?string
     {
-        return $this->Tel;
+        return $this->tel;
     }
 
-    public function setTel(?string $Tel): static
+    public function setTel(?string $tel): static
     {
-        $this->Tel = $Tel;
+        $this->tel = $tel;
 
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreateAt(): ?\DateTimeImmutable
     {
-        return $this->CreatedAt;
+        return $this->createAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $CreatedAt): static
+    public function setCreateAt(\DateTimeImmutable $createAt): static
     {
-        $this->CreatedAt = $CreatedAt;
+        $this->createAt = $createAt;
 
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTimeInterface
+    public function getUpdateAt(): ?\DateTimeInterface
     {
-        return $this->UpdatedAt;
+        return $this->updateAt;
     }
 
-    public function setUpdatedAt(\DateTimeInterface $UpdatedAt): static
+    public function setUpdateAt(\DateTimeInterface $updateAt): static
     {
-        $this->UpdatedAt = $UpdatedAt;
+        $this->updateAt = $updateAt;
 
         return $this;
     }
 
-    public function getIdUser(): ?int
+    public function getArtist(): ?Artist
     {
-        return $this->idUser;
+        return $this->artist;
     }
 
-    public function setIdUser(int $idUser): static
+    public function setArtist(Artist $artist): static
     {
-        $this->idUser = $idUser;
+        // set the owning side of the relation if necessary
+        if ($artist->getUserIdUser() !== $this) {
+            $artist->setUserIdUser($this);
+        }
+
+        $this->artist = $artist;
 
         return $this;
-    }
-/*
-    public function getEmail2(): ?string
-    {
-        return $this->Email2;
-    }
-
-    public function setEmail2(string $Email2): static
-    {
-        $this->Email2 = $Email2;
-
-        return $this;
-    }
-
-    public function getTest(): ?string
-    {
-        return $this->test;
-    }
-
-    public function setTest(string $test): static
-    {
-        $this->test = $test;
-
-        return $this;
-    }*/
-
-    public function UserSerializer(){
-        return[
-            "name"=>$this->getName(),
-            "email"=>$this->getEmail(),
-        ];
     }
 }
