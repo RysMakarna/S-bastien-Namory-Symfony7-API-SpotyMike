@@ -15,34 +15,36 @@ class Song
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 50)]
+    #[ORM\Column(length: 90)]
     private ?string $idSong = null;
 
-    #[ORM\Column(length: 45)]
-    private ?string $Title = null;
-
-    #[ORM\Column(length: 145)]
-    private ?string $URL = null;
+    #[ORM\Column(length: 255)]
+    private ?string $title = null;
 
     #[ORM\Column(length: 125)]
-    private ?string $Cover = null;
+    private ?string $url = null;
+
+    #[ORM\Column(length: 125)]
+    private ?string $cover = null;
 
     #[ORM\Column]
-    private ?bool $Visibility = null;
+    private ?bool $visibility = true;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $CreatedAt = null;
-
-    #[ORM\ManyToOne(inversedBy: 'songs')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Album $Album_idAlbum = null;
+    private ?\DateTimeImmutable $createAt = null;
 
     #[ORM\ManyToMany(targetEntity: Artist::class, inversedBy: 'songs')]
-    private Collection $Artist_idArtist;
+    private Collection $Artist_idUser;
+
+    #[ORM\ManyToOne(inversedBy: 'song_idSong')]
+    private ?Album $album = null;
+
+    #[ORM\ManyToOne(inversedBy: 'Song_idSong')]
+    private ?PlaylistHasSong $playlistHasSong = null;
 
     public function __construct()
     {
-        $this->Artist_idArtist = new ArrayCollection();
+        $this->Artist_idUser = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -64,72 +66,60 @@ class Song
 
     public function getTitle(): ?string
     {
-        return $this->Title;
+        return $this->title;
     }
 
-    public function setTitle(string $Title): static
+    public function setTitle(string $title): static
     {
-        $this->Title = $Title;
+        $this->title = $title;
 
         return $this;
     }
 
-    public function getURL(): ?string
+    public function getUrl(): ?string
     {
-        return $this->URL;
+        return $this->url;
     }
 
-    public function setURL(string $URL): static
+    public function setUrl(string $url): static
     {
-        $this->URL = $URL;
+        $this->url = $url;
 
         return $this;
     }
 
     public function getCover(): ?string
     {
-        return $this->Cover;
+        return $this->cover;
     }
 
-    public function setCover(string $Cover): static
+    public function setCover(string $cover): static
     {
-        $this->Cover = $Cover;
+        $this->cover = $cover;
 
         return $this;
     }
 
     public function isVisibility(): ?bool
     {
-        return $this->Visibility;
+        return $this->visibility;
     }
 
-    public function setVisibility(bool $Visibility): static
+    public function setVisibility(bool $visibility): static
     {
-        $this->Visibility = $Visibility;
+        $this->visibility = $visibility;
 
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreateAt(): ?\DateTimeImmutable
     {
-        return $this->CreatedAt;
+        return $this->createAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $CreatedAt): static
+    public function setCreateAt(\DateTimeImmutable $createAt): static
     {
-        $this->CreatedAt = $CreatedAt;
-
-        return $this;
-    }
-
-    public function getAlbumIdAlbum(): ?Album
-    {
-        return $this->Album_idAlbum;
-    }
-
-    public function setAlbumIdAlbum(?Album $Album_idAlbum): static
-    {
-        $this->Album_idAlbum = $Album_idAlbum;
+        $this->createAt = $createAt;
 
         return $this;
     }
@@ -137,24 +127,55 @@ class Song
     /**
      * @return Collection<int, Artist>
      */
-    public function getArtistIdArtist(): Collection
+    public function getArtistIdUser(): Collection
     {
-        return $this->Artist_idArtist;
+        return $this->Artist_idUser;
     }
 
-    public function addArtistIdArtist(Artist $artistIdArtist): static
+    public function addArtistIdUser(Artist $artistIdUser): static
     {
-        if (!$this->Artist_idArtist->contains($artistIdArtist)) {
-            $this->Artist_idArtist->add($artistIdArtist);
+        if (!$this->Artist_idUser->contains($artistIdUser)) {
+            $this->Artist_idUser->add($artistIdUser);
         }
 
         return $this;
     }
 
-    public function removeArtistIdArtist(Artist $artistIdArtist): static
+    public function removeArtistIdUser(Artist $artistIdUser): static
     {
-        $this->Artist_idArtist->removeElement($artistIdArtist);
+        $this->Artist_idUser->removeElement($artistIdUser);
 
         return $this;
+    }
+
+    public function getAlbum(): ?Album
+    {
+        return $this->album;
+    }
+
+    public function setAlbum(?Album $album): static
+    {
+        $this->album = $album;
+
+        return $this;
+    }
+
+    public function getPlaylistHasSong(): ?PlaylistHasSong
+    {
+        return $this->playlistHasSong;
+    }
+
+    public function setPlaylistHasSong(?PlaylistHasSong $playlistHasSong): static
+    {
+        $this->playlistHasSong = $playlistHasSong;
+
+        return $this;
+    }
+    public function AllSong()
+    {
+        return[
+            "cover"=>$this->getCover(),
+            "title"=>$this->getTitle(),
+        ];
     }
 }

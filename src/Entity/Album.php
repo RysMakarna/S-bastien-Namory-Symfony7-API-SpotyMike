@@ -15,27 +15,30 @@ class Album
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?int $idAlbum = null;
+    #[ORM\Column(length: 90)]
+    private ?string $idAlbum = null;
 
     #[ORM\Column(length: 90)]
-    private ?string $Name = null;
+    private ?string $nom = null;
 
-    #[ORM\Column(length: 50)]
-    private ?string $Category = null;
+    #[ORM\Column(length: 20)]
+    private ?string $categ = null;
 
-    #[ORM\Column(length: 135)]
-    private ?string $Cover = null;
+    #[ORM\Column(length: 125)]
+    private ?string $cover = null;
 
     #[ORM\Column]
-    private ?int $Year = 2024;
+    private ?int $year = 2024;
 
-    #[ORM\OneToMany(targetEntity: Song::class, mappedBy: 'Album_idAlbum')]
-    private Collection $songs;
+    #[ORM\ManyToOne(inversedBy: 'albums')]
+    private ?Artist $artist_User_idUser = null;
+
+    #[ORM\OneToMany(targetEntity: Song::class, mappedBy: 'album')]
+    private Collection $song_idSong;
 
     public function __construct()
     {
-        $this->songs = new ArrayCollection();
+        $this->song_idSong = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -43,62 +46,74 @@ class Album
         return $this->id;
     }
 
-    public function getIdAlbum(): ?int
+    public function getIdAlbum(): ?string
     {
         return $this->idAlbum;
     }
 
-    public function setIdAlbum(int $idAlbum): static
+    public function setIdAlbum(string $idAlbum): static
     {
         $this->idAlbum = $idAlbum;
 
         return $this;
     }
 
-    public function getName(): ?string
+    public function getNom(): ?string
     {
-        return $this->Name;
+        return $this->nom;
     }
 
-    public function setName(string $Name): static
+    public function setNom(string $nom): static
     {
-        $this->Name = $Name;
+        $this->nom = $nom;
 
         return $this;
     }
 
-    public function getCategory(): ?string
+    public function getCateg(): ?string
     {
-        return $this->Category;
+        return $this->categ;
     }
 
-    public function setCategory(string $Category): static
+    public function setCateg(string $categ): static
     {
-        $this->Category = $Category;
+        $this->categ = $categ;
 
         return $this;
     }
 
     public function getCover(): ?string
     {
-        return $this->Cover;
+        return $this->cover;
     }
 
-    public function setCover(string $Cover): static
+    public function setCover(string $cover): static
     {
-        $this->Cover = $Cover;
+        $this->cover = $cover;
 
         return $this;
     }
 
     public function getYear(): ?int
     {
-        return $this->Year;
+        return $this->year;
     }
 
-    public function setYear(int $Year): static
+    public function setYear(int $year): static
     {
-        $this->Year = $Year;
+        $this->year = $year;
+
+        return $this;
+    }
+
+    public function getArtistUserIdUser(): ?Artist
+    {
+        return $this->artist_User_idUser;
+    }
+
+    public function setArtistUserIdUser(?Artist $artist_User_idUser): static
+    {
+        $this->artist_User_idUser = $artist_User_idUser;
 
         return $this;
     }
@@ -106,27 +121,27 @@ class Album
     /**
      * @return Collection<int, Song>
      */
-    public function getSongs(): Collection
+    public function getSongIdSong(): Collection
     {
-        return $this->songs;
+        return $this->song_idSong;
     }
 
-    public function addSong(Song $song): static
+    public function addSongIdSong(Song $songIdSong): static
     {
-        if (!$this->songs->contains($song)) {
-            $this->songs->add($song);
-            $song->setAlbumIdAlbum($this);
+        if (!$this->song_idSong->contains($songIdSong)) {
+            $this->song_idSong->add($songIdSong);
+            $songIdSong->setAlbum($this);
         }
 
         return $this;
     }
 
-    public function removeSong(Song $song): static
+    public function removeSongIdSong(Song $songIdSong): static
     {
-        if ($this->songs->removeElement($song)) {
+        if ($this->song_idSong->removeElement($songIdSong)) {
             // set the owning side to null (unless already changed)
-            if ($song->getAlbumIdAlbum() === $this) {
-                $song->setAlbumIdAlbum(null);
+            if ($songIdSong->getAlbum() === $this) {
+                $songIdSong->setAlbum(null);
             }
         }
 
