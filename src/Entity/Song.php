@@ -171,4 +171,11 @@ class Song
 
         return $this;
     }
+    public function AllSong()
+    {
+        return[
+            "cover"=>$this->getCover(),
+            "title"=>$this->getTitle(),
+        ];
+    }
 }

@@ -26,7 +26,7 @@ class UserController extends AbstractController
     {
         $id_user = $this->repository->count();
         $email = $request->get('email');
-        $existingUser = $this->repository->findOneBy(['Email' => $email]);
+        $existingUser = $this->repository->findOneBy(['email' => $email]);
 
         if ($existingUser) {
             return $this->json([
@@ -40,8 +40,8 @@ class UserController extends AbstractController
         $user->setEncrypte($request->get('encrypte'));
         $user->setTel($request->get('tel'));
         $user->setIdUser($id_user+1);
-        $user->setCreatedAt(new \DateTimeImmutable());
-        $user->setUpdatedAt(new \DateTime());
+        $user->setCreateAt(new \DateTimeImmutable());
+        $user->setUpdateAt(new \DateTime());
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
@@ -76,12 +76,12 @@ class UserController extends AbstractController
             'message' => 'Aucune compte avec ce id à modifier !',
         ]);
       }
-      $user->setName($request->get('name'));
+      $user->setName($request->get('name'));    
       $user->setEmail($request->get('email'));
       $user->setTel($request->get('tel'));
       $this->entityManager->flush();
       return $this->json([
-        'message'=> 'Ajouter avec succès',
+        'message'=> 'modifier avec succès',
       ]);
     }
     #[Route('/delete/user/{id}', name: 'app_delete_user',methods:['delete'])]
@@ -100,6 +100,5 @@ class UserController extends AbstractController
             'message' => 'Utisateur supprimer avec succès!',
         ]);
     }
-
 
 }
