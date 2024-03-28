@@ -145,9 +145,13 @@ class User
         return $this;
     }
     public function UserSerializer(){
-        return[
-            "name"=>$this->getName(),
-            "email"=>$this->getEmail(),
+        return [
+            "idUser" => $this->getIdUser(),
+            "name" => $this->getName(),
+            "email" => $this->getEmail(),
+            "tel" => $this->getTel(),
+            "createAt" => $this->getCreateAt(),
+            "artist" => $this->getArtist() ?  $this->getArtist()->serializer() : [],
         ];
     }
 }

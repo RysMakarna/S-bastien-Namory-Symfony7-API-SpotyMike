@@ -151,11 +151,14 @@ class Artist
         return $this;
     }
 
-    public function ArtistSerializer(){
-        return[
-            "fullname"=>$this->getFullname(),
-            "label"=>$this->getLabel(),
-            "description"=>$this->getDescription(),            
+    public function serializer($children = false){
+        return [
+            "id" => $this->getId(),
+            "idUser" => ($children) ? $this->getUserIdUser() : null,
+            "fullname" => $this->getFullname(),
+            "label" => $this->getLabel(),
+            "description" => $this->getDescription(),
+            "songs" => $this->getSongs()
         ];
     }
 }
