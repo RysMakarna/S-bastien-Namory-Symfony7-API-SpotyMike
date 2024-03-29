@@ -6,9 +6,11 @@ use App\Repository\UserRepository;
 use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-class User
+
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -25,7 +27,7 @@ class User
     #[ORM\Column(length: 55)]
     private ?string $lastname = null;
 
-    #[ORM\Column(length: 80)]
+    #[ORM\Column(length: 80,unique:true)]
     private ?string $email = null;
 
     #[ORM\Column(length: 15, nullable: true)]
@@ -126,12 +128,12 @@ class User
         return $this;
     }
 
-    public function getEncrypte(): ?string
+    public function getPassword(): ?string
     {
         return $this->encrypte;
     }
 
-    public function setEncrypte(string $encrypte): static
+    public function setPassword(string $encrypte): static
     {
         $this->encrypte = $encrypte;
 
@@ -189,6 +191,18 @@ class User
         $this->artist = $artist;
 
         return $this;
+    }
+    public function getRoles(): array{
+
+        return [];
+    }
+
+    public function eraseCredentials(): void{
+
+    }
+
+    public function getUserIdentifier(): string{
+        return "";
     }
     public function UserSerializer(){
         return [

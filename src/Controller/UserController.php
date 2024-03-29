@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserController extends AbstractController
 {
@@ -23,7 +24,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/add/user', name: 'app_add_user', methods: ['POST'])]
-    public function AddUser(Request $request): JsonResponse
+    public function AddUser(Request $request,UserPasswordHasherInterface $passwordHash): JsonResponse
     {
         $id_user = $this->repository->count();
         $email = $request->get('email');
@@ -46,9 +47,13 @@ class UserController extends AbstractController
                         $user->setEmail($request->get('email'));
                         $user->setFirstname($request->get('firstname'));
                         $user->setLastname($request->get('lastname'));
-                        //$encrypte = password_hash($request->get('encrypte'), PASSWORD_DEFAULT);        
-                        $user->setEncrypte($request->get('encrypte'));
+                        //$encrypte = password_hash($request->get('encrypte'), PASSWORD_DEFAULT);           
                         $user->setTel($request->get('tel'));
+                        $password = $request->get('encrypte');
+
+                        $hash = $passwordHash->hashPassword($user, $password);
+                        $user->setPassword($hash);
+
                         $user->setIdUser($id_user + 1);
                         $user->setCreateAt(new \DateTimeImmutable());
                         $user->setUpdateAt(new \DateTime());
