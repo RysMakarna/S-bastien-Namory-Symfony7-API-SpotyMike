@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -19,16 +20,25 @@ class User
     private ?string $idUser = null;
 
     #[ORM\Column(length: 55)]
-    private ?string $name = null;
+    private ?string $firstname = null;
+
+    #[ORM\Column(length: 55)]
+    private ?string $lastname = null;
 
     #[ORM\Column(length: 80)]
     private ?string $email = null;
 
+    #[ORM\Column(length: 15, nullable: true)]
+    private ?string $tel = null;
+    #[ORM\Column(length:20)] // Default Value : "Non Précisé" -> Ne sera pas montré à d'autres utilisateurs
+    private ?string $sexe = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE)] // Sera changé PAR le controller
+    private ?DateTime $birthday = null;
+
     #[ORM\Column(length: 90)]
     private ?string $encrypte = null;
 
-    #[ORM\Column(length: 15, nullable: true)]
-    private ?string $tel = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createAt = null;
@@ -56,14 +66,26 @@ class User
         return $this;
     }
 
-    public function getName(): ?string
+    public function getFirstname(): ?string
     {
-        return $this->name;
+        return $this->firstname;
     }
 
-    public function setName(string $name): static
+    public function setFirstname(string $firstname): static
     {
-        $this->name = $name;
+        $this->firstname = $firstname;
+
+        return $this;
+    }
+
+    public function getLastname(): ?string
+    {
+        return $this->lastname;
+    }
+
+    public function setLastname(string $lastname): static
+    {
+        $this->lastname = $lastname;
 
         return $this;
     }
@@ -76,6 +98,30 @@ class User
     public function setEmail(string $email): static
     {
         $this->email = $email;
+
+        return $this;
+    }
+
+    public function getSexe(): ?string
+    {
+        return $this->sexe;
+    }
+
+    public function setSexe(string $sexe): static
+    {
+        $this->sexe = $sexe;
+
+        return $this;
+    }
+
+    public function getBirthday(): ?DateTime
+    {
+        return $this->birthday;
+    }
+
+    public function setBirthday(DateTime $birthday): static
+    {
+        $this->birthday = $birthday;
 
         return $this;
     }
@@ -147,11 +193,14 @@ class User
     public function UserSerializer(){
         return [
             "idUser" => $this->getIdUser(),
-            "name" => $this->getName(),
+            "firstname" => $this->getFirstname(),
+            "lastname" => $this->getLastname(),
             "email" => $this->getEmail(),
             "tel" => $this->getTel(),
-            "createAt" => $this->getCreateAt(),
+            "sexe" => $this->getSexe(), 
             "artist" => $this->getArtist() ?  $this->getArtist()->serializer() : [],
+            "dateBirth" => $this->getBirthday(), // Will need to be in format('d-m-Y'),
+            "createAt" => $this->getCreateAt(),
         ];
     }
 }

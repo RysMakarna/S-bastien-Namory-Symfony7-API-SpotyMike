@@ -38,12 +38,14 @@ class UserController extends AbstractController
         //add regex tel 
         if (strlen($request->get('tel')) <= 14) {
             //dd("acccepter");
-            if (preg_match('/(0|\\+33|0033)[1-9][0-9]{8}$/', $request->get('tel'))) {
+            //[0][1-9][0-9]{8}$
+            if (preg_match('/[(0|\\+33|0033)][1-9][0-9]{8}$/', $request->get('tel'))) {
                 if (filter_var($email, FILTER_VALIDATE_EMAIL) && strlen($email) <= 60) {
                     if (strlen($request->get('name')) <= 10) {
                         $user = new User();
                         $user->setEmail($request->get('email'));
-                        $user->setName($request->get('name'));
+                        $user->setFirstname($request->get('firstname'));
+                        $user->setLastname($request->get('lastname'));
                         //$encrypte = password_hash($request->get('encrypte'), PASSWORD_DEFAULT);        
                         $user->setEncrypte($request->get('encrypte'));
                         $user->setTel($request->get('tel'));
