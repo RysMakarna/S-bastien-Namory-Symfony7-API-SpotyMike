@@ -3,11 +3,14 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-class User
+
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -19,16 +22,25 @@ class User
     private ?string $idUser = null;
 
     #[ORM\Column(length: 55)]
-    private ?string $name = null;
+    private ?string $firstname = null;
 
-    #[ORM\Column(length: 80)]
+    #[ORM\Column(length: 55)]
+    private ?string $lastname = null;
+
+    #[ORM\Column(length: 80,unique:true)]
     private ?string $email = null;
+
+    #[ORM\Column(length: 15, nullable: true)]
+    private ?string $tel = null;
+    #[ORM\Column(length:20)] // Default Value : "Non Précisé" -> Ne sera pas montré à d'autres utilisateurs
+    private ?string $sexe = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE)] // Sera changé PAR le controller
+    private ?DateTime $birthday = null;
 
     #[ORM\Column(length: 90)]
     private ?string $encrypte = null;
 
-    #[ORM\Column(length: 15, nullable: true)]
-    private ?string $tel = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createAt = null;
@@ -56,14 +68,26 @@ class User
         return $this;
     }
 
-    public function getName(): ?string
+    public function getFirstname(): ?string
     {
-        return $this->name;
+        return $this->firstname;
     }
 
-    public function setName(string $name): static
+    public function setFirstname(string $firstname): static
     {
-        $this->name = $name;
+        $this->firstname = $firstname;
+
+        return $this;
+    }
+
+    public function getLastname(): ?string
+    {
+        return $this->lastname;
+    }
+
+    public function setLastname(string $lastname): static
+    {
+        $this->lastname = $lastname;
 
         return $this;
     }
@@ -80,12 +104,36 @@ class User
         return $this;
     }
 
-    public function getEncrypte(): ?string
+    public function getSexe(): ?string
+    {
+        return $this->sexe;
+    }
+
+    public function setSexe(string $sexe): static
+    {
+        $this->sexe = $sexe;
+
+        return $this;
+    }
+
+    public function getBirthday(): ?DateTime
+    {
+        return $this->birthday;
+    }
+
+    public function setBirthday(DateTime $birthday): static
+    {
+        $this->birthday = $birthday;
+
+        return $this;
+    }
+
+    public function getPassword(): ?string
     {
         return $this->encrypte;
     }
 
-    public function setEncrypte(string $encrypte): static
+    public function setPassword(string $encrypte): static
     {
         $this->encrypte = $encrypte;
 
@@ -144,10 +192,29 @@ class User
 
         return $this;
     }
+    public function getRoles(): array{
+
+        return [];
+    }
+
+    public function eraseCredentials(): void{
+
+    }
+
+    public function getUserIdentifier(): string{
+        return "";
+    }
     public function UserSerializer(){
-        return[
-            "name"=>$this->getName(),
-            "email"=>$this->getEmail(),
+        return [
+            "idUser" => $this->getIdUser(),
+            "firstname" => $this->getFirstname(),
+            "lastname" => $this->getLastname(),
+            "email" => $this->getEmail(),
+            "tel" => $this->getTel(),
+            "sexe" => $this->getSexe(), 
+            "artist" => $this->getArtist() ?  $this->getArtist()->serializer() : [],
+            "dateBirth" => $this->getBirthday(), // Will need to be in format('d-m-Y'),
+            "createAt" => $this->getCreateAt(),
         ];
     }
 }

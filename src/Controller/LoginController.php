@@ -40,5 +40,5 @@ class LoginController extends AbstractController
             'path' => 'src/Controller/LoginController.php',
         ]);
     }
-
+    
 }
