@@ -37,19 +37,26 @@ class UserController extends AbstractController
         }
 
         //add regex tel 
-        if (strlen($request->get('tel')) <= 14) {
+        //if (strlen($request->get('tel')) <= 14) {
             //dd("acccepter");
             //[0][1-9][0-9]{8}$
-            if (preg_match('/[(0|\\+33|0033)][1-9][0-9]{8}$/', $request->get('tel'))) {
-                if (filter_var($email, FILTER_VALIDATE_EMAIL) && strlen($email) <= 60) {
-                    if (strlen($request->get('name')) <= 10) {
+
+            
+            
+            //if (preg_match('/[(0|\\+33|0033)][1-9][0-9]{8}$/', $request->get('tel'))) {
+               // if (filter_var($email, FILTER_VALIDATE_EMAIL) && strlen($email) <= 60) {
+                    //if (strlen($request->get('name')) <= 10) {
+
+                        //dd("ok");
                         $user = new User();
                         $user->setEmail($request->get('email'));
                         $user->setFirstname($request->get('firstname'));
                         $user->setLastname($request->get('lastname'));
+                        $user->setSexe($request->get('sexe'));
+                        $user->setBirthday(new \DateTime($request->get('birthday')));
                         //$encrypte = password_hash($request->get('encrypte'), PASSWORD_DEFAULT);           
                         $user->setTel($request->get('tel'));
-                        $password = $request->get('encrypte');
+                        $password = $request->get('password');
 
                         $hash = $passwordHash->hashPassword($user, $password);
                         $user->setPassword($hash);
@@ -64,27 +71,7 @@ class UserController extends AbstractController
                             'user' => $user->UserSerializer(),
                             'message' => 'Ajouter  avec  succès',
                         ], 200);
-                    } else {
-                        return $this->json([
-                            "message" => "votre email nom est trop long."
-                        ], 400); 
-                    }
-
-                } else {
-                    return $this->json([
-                        "message" => "votre adresse e-mail est invalide."
-                    ], 400); 
-                }
-            } else {
-                return $this->json([
-                    'error' => 'votre numero est dans un format invalide.',
-                ], 400);
-            }
-        } else {
-            return $this->json([
-                'error' => 'La taille du numéro est invalide.',
-            ], 400);
-        }
+    
     }
 
     #[Route('/read/user', name: 'app_read_user')]
@@ -115,7 +102,6 @@ class UserController extends AbstractController
                 'message' => 'Aucune compte avec ce id à modifier !',
             ],444);
         }
-        $user->setName($request->get('name'));
         $user->setEmail($request->get('email'));
         $user->setTel($request->get('tel'));
         $this->entityManager->flush();

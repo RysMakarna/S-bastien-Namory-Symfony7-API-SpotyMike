@@ -8,6 +8,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -16,6 +17,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
+
 
     // #[ORM\Id]
     #[ORM\Column(length: 90)]
@@ -27,19 +29,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 55)]
     private ?string $lastname = null;
 
-    #[ORM\Column(length: 80,unique:true)]
+    #[ORM\Column(length: 80, unique: true)]
     private ?string $email = null;
 
     #[ORM\Column(length: 15, nullable: true)]
     private ?string $tel = null;
-    #[ORM\Column(length:20)] // Default Value : "Non Précisé" -> Ne sera pas montré à d'autres utilisateurs
+    #[ORM\Column(length: 20)] // Default Value : "Non Précisé" -> Ne sera pas montré à d'autres utilisateurs
     private ?string $sexe = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)] // Sera changé PAR le controller
     private ?DateTime $birthday = null;
 
     #[ORM\Column(length: 90)]
-    private ?string $encrypte = null;
+    private ?string $password = null;
+    #[ORM\Column]
+    private ?int $nbTentative = 0;
 
 
     #[ORM\Column]
@@ -60,10 +64,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->idUser;
     }
-
+    public function getnbTentative(): ?string
+    {
+        return $this->nbTentative;
+    }
     public function setIdUser(string $idUser): static
     {
         $this->idUser = $idUser;
+
+        return $this;
+    }
+    public function setnbTentative(int $nbTentative): static
+    {
+        $this->nbTentative = $nbTentative;
 
         return $this;
     }
@@ -130,12 +143,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getPassword(): ?string
     {
-        return $this->encrypte;
+        return $this->password;
     }
 
-    public function setPassword(string $encrypte): static
+    public function setPassword(string $password): static
     {
-        $this->encrypte = $encrypte;
+        $this->password = $password;
 
         return $this;
     }
@@ -192,27 +205,31 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
-    public function getRoles(): array{
+    public function getRoles(): array
+    {
 
         return [];
     }
 
-    public function eraseCredentials(): void{
+    public function eraseCredentials(): void
+    {
 
     }
 
-    public function getUserIdentifier(): string{
+    public function getUserIdentifier(): string
+    {
         return "";
     }
-    public function UserSerializer(){
+    public function UserSerializer()
+    {
         return [
             "idUser" => $this->getIdUser(),
             "firstname" => $this->getFirstname(),
             "lastname" => $this->getLastname(),
             "email" => $this->getEmail(),
             "tel" => $this->getTel(),
-            "sexe" => $this->getSexe(), 
-            "artist" => $this->getArtist() ?  $this->getArtist()->serializer() : [],
+            "sexe" => $this->getSexe(),
+            "artist" => $this->getArtist() ? $this->getArtist()->serializer() : [],
             "dateBirth" => $this->getBirthday(), // Will need to be in format('d-m-Y'),
             "createAt" => $this->getCreateAt(),
         ];

@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class LoginController extends AbstractController
 {
@@ -18,6 +19,7 @@ class LoginController extends AbstractController
     {
         $this->entityManager = $entityManager;
         $this->repository = $entityManager->getRepository(User::class);
+
     }
     // pointless but need to test something
     #[Route('/login', name: 'app_login', methods: 'GET')]
@@ -29,16 +31,70 @@ class LoginController extends AbstractController
         ]);
     }
 
-    #[Route('/login', name: 'app_login_post', methods: ['POST', 'PUT'])]
-    public function login(Request $request): JsonResponse
+    #[Route('/login', name: 'app_login_post', methods: 'POST')]
+    public function login(Request $request, UserPasswordHasherInterface $passwordHash): JsonResponse
     {
-        $user = $this->repository->findOneBy(["email" => "slopez@orange.fr"]);
+        $email_validation_regex = '/^\\S+@\\S+\\.\\S+$/';
+        $email = $request->get('email');
+        $password = $request->get('password');
+
+        $user = $this->repository->findOneBy(['email' => $email]);
+
+        //email et password vide
+
+        if (empty($email) || empty($password)) {
+            return $this->json([
+                'error' => true,
+                'message' => 'Email/password manquants'
+            ], 400);
+        }
+
+        //email non comforme
+
+        if (!preg_match($email_validation_regex, $email)) {
+            return $this->json([
+                'error' => true,
+                'message' => 'Email/password incorrect'
+            ], 400);
+        }
+
+
+        if ($user) {
+            //password erroné
+            if (!$passwordHash->isPasswordValid($user, $password)) {
+                $nbt = $user->getnbTentative() + 1;
+                $user->setnbTentative($nbt);
+                //nombre de tentative
+                if ($user->getnbTentative() >= 5) {
+                    if ($user->getUpdateAt() && (time() - $user->getUpdateAt()->getTimestamp()) >=120) {
+                        $user->setnbTentative(0);
+                        $this->entityManager->persist($user);
+                        $this->entityManager->flush();
+                    }
+                    return $this->json([
+                        'error' => true,
+                        'message' => 'Trop de tentative sur email' . $user->getEmail() . 'Veuillez patienter 2 minutes'
+                    ], 429);
+
+                }
+                $this->entityManager->persist($user);
+                $this->entityManager->flush();
+                return $this->json([
+                    'error' => true,
+                    'message' => 'Email/password incorrect'
+                ], 400);
+            }
+        } else {
+            return $this->json([
+                'error' => true,
+                'message' => 'Email/password incorrect'
+            ], 400);
+        }
         return $this->json([
-            'user' => json_encode($user),
-            'data' => $request->getContent(),
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/LoginController.php',
-        ]);
+            'error' => false,
+            'data' => $user->UserSerializer(),
+        ], 200);
+
     }
-    
 }
+
