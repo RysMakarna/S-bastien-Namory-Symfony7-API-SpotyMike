@@ -171,11 +171,23 @@ class Song
 
         return $this;
     }
-    public function AllSong()
+    public function Serializer()
     {
         return[
+            "id"=> $this->getId(),
             "cover"=>$this->getCover(),
             "title"=>$this->getTitle(),
+            "createAt"=>$this->getCreateAt()->format('d-m-Y'),
+        ];
+    }
+    public function SerializerUser()
+    {
+        return[
+            "id"=> $this->getId(),
+            "cover"=>$this->getCover(),
+            "title"=>$this->getTitle(),
+            "visibility"=>$this->isVisibility(),
+            "createAt"=>$this->getCreateAt()->format('d-m-Y'),
         ];
     }
 }
