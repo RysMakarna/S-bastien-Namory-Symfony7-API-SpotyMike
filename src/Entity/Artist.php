@@ -15,12 +15,12 @@ class Artist
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
-
+    
     #[ORM\OneToOne(inversedBy: 'artist', cascade: ['remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $User_idUser = null;
 
-    #[ORM\Column(length: 90)]
+    #[ORM\Column(length: 90,unique:true)]
     private ?string $fullname = null;
 
     #[ORM\Column(length: 90)]
@@ -39,11 +39,6 @@ class Artist
     {
         $this->songs = new ArrayCollection();
         $this->albums = new ArrayCollection();
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
     }
 
     public function getUserIdUser(): ?User

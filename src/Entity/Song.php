@@ -36,7 +36,7 @@ class Song
     #[ORM\ManyToMany(targetEntity: Artist::class, inversedBy: 'songs')]
     private Collection $Artist_idUser;
 
-    #[ORM\ManyToOne(inversedBy: 'song_idSong')]
+    #[ORM\ManyToOne(inversedBy: 'song_idSong', cascade: ['remove'])]
     private ?Album $album = null;
 
     #[ORM\ManyToOne(inversedBy: 'Song_idSong')]
