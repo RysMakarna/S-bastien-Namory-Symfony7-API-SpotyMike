@@ -9,16 +9,19 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
 class LoginController extends AbstractController
 {
     private $entityManager;
     private $repository;
+    private $JWTManager;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, JWTTokenManagerInterface $JWTManager)
     {
         $this->entityManager = $entityManager;
         $this->repository = $entityManager->getRepository(User::class);
+        $this->JWTManager = $JWTManager;
 
     }
     // pointless but need to test something
@@ -48,16 +51,13 @@ class LoginController extends AbstractController
                 'message' => 'Email/password manquants'
             ], 400);
         }
-
         //email non comforme
-
         if (!preg_match($email_validation_regex, $email)) {
             return $this->json([
                 'error' => true,
                 'message' => 'Email/password incorrect'
             ], 400);
         }
-
 
         if ($user) {
             //password erroné
@@ -66,14 +66,15 @@ class LoginController extends AbstractController
                 $user->setnbTentative($nbt);
                 //nombre de tentative
                 if ($user->getnbTentative() >= 5) {
-                    if ($user->getUpdateAt() && (time() - $user->getUpdateAt()->getTimestamp()) >=120) {
+                    if ($user->getUpdateAt() && (time() - $user->getUpdateAt()->getTimestamp()) >= 120) {
                         $user->setnbTentative(0);
+                        $user->setUpdateAt(new \DateTime());
                         $this->entityManager->persist($user);
                         $this->entityManager->flush();
                     }
                     return $this->json([
                         'error' => true,
-                        'message' => 'Trop de tentative sur email' . $user->getEmail() . 'Veuillez patienter 2 minutes'
+                        'message' => 'Trop de tentative sur email ' . $user->getEmail() . ' Veuillez patienter 2 minutes'
                     ], 429);
 
                 }
@@ -92,7 +93,8 @@ class LoginController extends AbstractController
         }
         return $this->json([
             'error' => false,
-            'data' => $user->UserSerializer(),
+            'data' => $user->serializer(),
+            'token' => $this->JWTManager->create($user)
         ], 200);
 
     }

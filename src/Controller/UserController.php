@@ -23,7 +23,7 @@ class UserController extends AbstractController
         $this->repository = $entityManager->getRepository(User::class);
     }
 
-    #[Route('/add/user', name: 'app_add_user', methods: ['POST'])]
+    #[Route('/register', name: 'app_add_user', methods: ['POST'])]
     public function AddUser(Request $request,UserPasswordHasherInterface $passwordHash): JsonResponse
     {
         $id_user = $this->repository->count();
