@@ -45,7 +45,7 @@ class UserController extends AbstractController
                 'message' => 'Une ou plusieurs données obligatoires sont manquantes'
             ], 400);
         }
-
+      
         if (!preg_match('/^\S+@\+\.\S+$/', $request->get('email')) || !$DiG ||
         preg_match('/[0][1-9][0-9]{8}$/', $request->get('tel'))) {
             return $this->json([
@@ -94,8 +94,6 @@ class UserController extends AbstractController
                     'error' => false,
                     'message' => "L'utilisateur a bien été créé avec succès." . $user->UserSerialRegis(),
                 ], 201);
-
-        
     }
 
     #[Route('/read/user', name: 'app_read_user')]
@@ -126,7 +124,6 @@ class UserController extends AbstractController
                 'message' => 'Aucune compte avec ce id à modifier !',
             ], 444);
         }
-        $user->setName($request->get('name'));
         $user->setEmail($request->get('email'));
         $user->setTel($request->get('tel'));
         $this->entityManager->flush();*/
