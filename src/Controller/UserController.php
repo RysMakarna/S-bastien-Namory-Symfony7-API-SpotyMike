@@ -109,20 +109,16 @@ class UserController extends AbstractController
             'message' => 'modifier avec succès',
         ],200);
     }
-    #[Route('/delete/user/{id}', name: 'app_delete_user', methods: ['delete'])]
-    public function delete(int $id): JsonResponse
+    #[Route('/user', name: 'app_delete_user', methods: ['delete'])]
+    public function deleteUser(): JsonResponse
     {
-        $user = $this->entityManager->getRepository(User::class)->find($id);
-        if (!$user) {
-            return $this->json([
-                'message' => 'Aucune compte avec ce id à modifier !',
-            ],444);
-        }
+        $current_user = $this->getUser()->getUserIdentifier();
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email'=>$current_user]);
         $this->entityManager->remove($user);
         $this->entityManager->flush();
 
         return $this->json([
-            'message' => 'Utisateur supprimer avec succès!',
+            'message' => 'Votre compte à été supprimé avec succès!',
         ],200);
     }
 
