@@ -26,6 +26,8 @@ class Album
 
     #[ORM\Column(length: 125)]
     private ?string $cover = null;
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createAt = null;
 
     #[ORM\Column]
     private ?int $year = 2024;
@@ -117,6 +119,17 @@ class Album
 
         return $this;
     }
+    public function getCreateAt(): ?\DateTimeImmutable
+    {
+        return $this->createAt;
+    }
+
+    public function setCreateAt(\DateTimeImmutable $createAt): static
+    {
+        $this->createAt = $createAt;
+
+        return $this;
+    }
 
     /**
      * @return Collection<int, Song>
@@ -147,4 +160,15 @@ class Album
 
         return $this;
     }
+    public function serializer($children = false){
+        return [
+            "id" => $this->getId(),  
+            "nom" => $this->getNom(),
+            "categ" => $this->getCateg(),
+            "cover"=> $this->getCover(),
+            "year" => $this->getYear(),
+            "createAt" => $this->getCreateAt()->format('d-m-Y'),
+        ];
+    }
+
 }

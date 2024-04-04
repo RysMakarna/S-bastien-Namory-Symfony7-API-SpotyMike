@@ -217,7 +217,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getUserIdentifier(): string
     {
-        return "";
+        return(string) $this->email;
     }
     public function UserSerializer()
     {
@@ -232,7 +232,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             "createAt" => $this->getCreateAt(),
         ];
     }
+    public function Serializer()
+    {
+        $dateOfBirth = $this->getBirthday();
 
+        // Formater la date de naissance au format 'd-m-Y' si elle est disponible
+     
+        return [
+            "idUser" => $this->getIdUser(),
+            "firstname" => $this->getFirstname(),
+            "lastname" => $this->getLastname(),
+            "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
+            "Artist.createAt" => $this->getCreateAt()->format('d-m-Y'),
     public function UserSerialRegis(){
         return [
             "firstname" => $this->getFirstname(),

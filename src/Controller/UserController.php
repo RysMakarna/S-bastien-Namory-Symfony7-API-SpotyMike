@@ -25,6 +25,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/register', name: 'app_add_user', methods: ['POST'])]
+  
     public function AddUser(Request $request, UserPasswordHasherInterface $passwordHash): JsonResponse
     {
         $email = $request->get('email');

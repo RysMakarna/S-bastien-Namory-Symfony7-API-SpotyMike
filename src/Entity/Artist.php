@@ -34,6 +34,7 @@ class Artist
 
     #[ORM\OneToMany(targetEntity: Album::class, mappedBy: 'artist_User_idUser')]
     private Collection $albums;
+    private ?User $user = null;
 
     public function __construct()
     {
@@ -44,6 +45,10 @@ class Artist
     public function getId(): ?int
     {
         return $this->id;
+    }
+    public function getUser(): ?User
+    {
+        return $this->user;
     }
 
     public function getUserIdUser(): ?User
@@ -151,10 +156,8 @@ class Artist
         return $this;
     }
 
-    public function serializer($children = false){
+    public function serializer(){
         return [
-            "id" => $this->getId(),
-            "idUser" => ($children) ? $this->getUserIdUser() : null,
             "fullname" => $this->getFullname(),
             "label" => $this->getLabel(),
             "description" => $this->getDescription(),
