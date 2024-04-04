@@ -27,7 +27,6 @@ class UserController extends AbstractController
     #[Route('/register', name: 'app_add_user', methods: ['POST'])]
     public function AddUser(Request $request, UserPasswordHasherInterface $passwordHash): JsonResponse
     {
-        $id_user = $this->repository->count(); // Will be modified
         $email = $request->get('email');
         $existingUser = $this->repository->findOneBy(['email' => $email]);
 
@@ -65,7 +64,7 @@ class UserController extends AbstractController
         }
                 $user = new User();
                 # ID
-                $user->setIdUser($id_user + 1); // Will be Modified. Logic to not have twice or more the same ID.
+                $user->setIdUser("User_".rand(0,999)); // Will be Modified. Logic to not have twice or more the same ID.
                 # Add Obligatory Values
                 $user->setEmail($request->get('email'));
                 $user->setFirstname($request->get('firstname'));
@@ -79,7 +78,7 @@ class UserController extends AbstractController
                 $user->setTel($tel);
                 # Encrypt and Save Password
                 //$encrypte = password_hash($request->get('encrypte'), PASSWORD_DEFAULT);
-                $password = $request->get('encrypte');
+                $password = $request->get('password');
 
                 $hash = $passwordHash->hashPassword($user, $password);
                 $user->setPassword($hash);
@@ -121,7 +120,7 @@ class UserController extends AbstractController
     #[Route('/update/user/{id}', name: 'app_update_user', methods: ['PUT'])]
     public function update(int $id, Request $request): JsonResponse
     {
-        $user = $this->entityManager->getRepository(User::class)->find($id);
+        /*$user = $this->entityManager->getRepository(User::class)->find($id);
         if (!$user) {
             return $this->json([
                 'message' => 'Aucune compte avec ce id à modifier !',
@@ -130,7 +129,7 @@ class UserController extends AbstractController
         $user->setName($request->get('name'));
         $user->setEmail($request->get('email'));
         $user->setTel($request->get('tel'));
-        $this->entityManager->flush();
+        $this->entityManager->flush();*/
         return $this->json([
             'message' => 'modifier avec succès',
         ], 200);
