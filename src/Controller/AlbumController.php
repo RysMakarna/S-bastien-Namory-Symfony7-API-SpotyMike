@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Entity\Song;
 use App\Entity\Album;
 use Doctrine\ORM\EntityManagerInterface;
@@ -18,15 +19,17 @@ class AlbumController extends AbstractController
     {
         $this->entityManager = $entityManager;
     }
-    #[Route('/album', name: 'app_album')]
+    #[Route('/album', name: 'app_album', methods: ['POST'])]
     public function index(Request $request): JsonResponse
     {
 
         $currentUser = $this->getUser()->getUserIdentifier();
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $currentUser]);
         $albumRepository = $this->entityManager->getRepository(Album::class);
-        $existingAlbum = $albumRepository->findOneBy(['artist_User_idUser'=> $currentUser->getId(), 'name'=>$request->get('name')]); 
 
-        if(empty($currentUser)) {
+        $existingAlbum = $albumRepository->findOneBy(['artist_User_idUser'=> $user->getId(), 'name'=>$request->get('name')]); 
+
+        if(empty($user)) {
             return $this-> json([
             'error' => true,
             'message' => "Votre token n'est pas correct"
@@ -40,7 +43,7 @@ class AlbumController extends AbstractController
                 ],409);
         }
 
-        if (!$request->get('name') || !$request->get('catef')) {
+        if (!$request->get('name') || !$request->get('categ')) {
             return $this->json([
                 'error'=> true,
                 'message'=> 'Une ou plusieurs données sont manquantes'
@@ -71,7 +74,7 @@ class AlbumController extends AbstractController
         foreach($request->get('songs') as $newSong){
             $song = new Song();
             $song->setIdSong('Song_'.rand(0,999));
-            $song->setAlbum($albumId);
+            $song->setAlbum($album);
             $song->setTitle($newSong->get('title'));
             $songCover = $newSong->get('cover') ? $newSong->get('cover') : "default_cover";
             $song->setCover($songCover);
@@ -80,10 +83,10 @@ class AlbumController extends AbstractController
             $song-> setVisibility($visible);
             $song->setCreateAt(new \DateTimeImmutable());
             // Will need to work on adding featuring later
-            /*foreach($song->getArtistIdUser() as $artist){
+            foreach($song->getArtistIdUser() as $artist){
                 $artist->addSong($song);
                 $this->entityManager->persist($artist);
-            }*/
+            }
             $this->entityManager->persist($song);
         }
 

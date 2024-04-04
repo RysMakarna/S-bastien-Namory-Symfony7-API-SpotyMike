@@ -148,7 +148,6 @@ class Artist
 
     public function serializer($children = false){
         return [
-            "id" => $this->getId(),
             "idUser" => ($children) ? $this->getUserIdUser() : null,
             "fullname" => $this->getFullname(),
             "label" => $this->getLabel(),
