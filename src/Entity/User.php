@@ -2,15 +2,14 @@
 
 namespace App\Entity;
 
-use App\Repository\UserRepository;
-use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use App\Repository\UserRepository;
+//use Symfony\Component\Validator\Constraints\DateTime;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -20,7 +19,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
 
     // #[ORM\Id]
-    #[ORM\Column(length: 90)]
+    #[ORM\Column(length: 90,unique:true)]
     private ?string $idUser = null;
 
     #[ORM\Column(length: 55)]
@@ -38,7 +37,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $sexe = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)] // Sera changé PAR le controller
-    private ?DateTime $birthday = null;
+    private ?\DateTimeInterface $birthday = null;
 
     #[ORM\Column(length: 90)]
     private ?string $password = null;
@@ -129,12 +128,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getBirthday(): ?DateTime
+    public function getBirthday(): ?\DateTimeInterface
     {
         return $this->birthday;
     }
 
-    public function setBirthday(DateTime $birthday): static
+    public function setBirthday(\DateTimeInterface $birthday): static
     {
         $this->birthday = $birthday;
 
@@ -223,7 +222,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function UserSerializer()
     {
         return [
-            "idUser" => $this->getIdUser(),
             "firstname" => $this->getFirstname(),
             "lastname" => $this->getLastname(),
             "email" => $this->getEmail(),
@@ -232,6 +230,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             "artist" => $this->getArtist() ? $this->getArtist()->serializer() : [],
             "dateBirth" => $this->getBirthday(), // Will need to be in format('d-m-Y'),
             "createAt" => $this->getCreateAt(),
+        ];
+    }
+
+    public function UserSerialRegis(){
+        return [
+            "firstname" => $this->getFirstname(),
+            "lastname" => $this->getLastname(),
+            "email" => $this->getEmail(),
+            "tel" => $this->getTel(),
+            "sexe" => $this->getSexe(), 
+            "dateBirth" => $this->getBirthday(), // Will need to be in format('d-m-Y'),
+            "createAt" => $this->getCreateAt(),
+            "updateAt" => $this->getUpdateAt(),
         ];
     }
 }
