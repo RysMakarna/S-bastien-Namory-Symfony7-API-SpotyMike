@@ -159,9 +159,7 @@ class Artist
     public function serializer(){
         return [
             "fullname" => $this->getFullname(),
-            "label" => $this->getLabel(),
             "description" => $this->getDescription(),
-            "songs" => $this->getSongs()
         ];
     }
 }
