@@ -45,5 +45,14 @@ class ArtistRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+    public function GetExiteFullname($fullname)
+    {
+        return $this->createQueryBuilder('a')
+            ->select('count(a.id)')
+            ->where('a.fullname = :fullname')
+            ->setParameter('fullname', $fullname)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 
 }

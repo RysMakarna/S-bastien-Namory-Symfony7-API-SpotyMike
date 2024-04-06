@@ -22,6 +22,7 @@ class UserController extends AbstractController
         $this->entityManager = $entityManager;
         $this->repository = $entityManager->getRepository(User::class);
         $this->format = 'd-m-Y';
+        
     }
 
     #[Route('/register', name: 'app_add_user', methods: ['POST'])]
@@ -96,7 +97,7 @@ class UserController extends AbstractController
                 return $this->json([
                     'error' => false,
                     'message' => "L'utilisateur a bien été créé avec succès.",
-                    'user' => $user->UserSerialRegis()
+                    'user' => $user->UserSerial()
                 ], 201);
     }
 

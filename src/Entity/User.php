@@ -265,6 +265,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             "createAt" => $this->getCreateAt()->format('d-m-Y'),
         ];
     }
+    public function UserSerial()
+    {
+        return [
+            "firstname" => $this->getFirstname(),
+            "lastname" => $this->getLastname(),
+            "email" => $this->getEmail(),
+            "tel" => $this->getTel(),
+            "sexe" => $this->getSexe(),
+            "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
+            "createAt" => $this->getCreateAt()->format('d-m-Y'),
+        ];
+    }
 
     public function isActif(): ?bool
     {
