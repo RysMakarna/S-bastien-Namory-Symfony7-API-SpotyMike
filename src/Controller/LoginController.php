@@ -96,7 +96,7 @@ class LoginController extends AbstractController
                         $user->UserSerialRegis( $artist )
                     ],
                 // Assurez-vous que la méthode serialize() retourne les données au format attendu.  
-                    'token' => $this->JWTManager->create($user)
+                    'token' => $this->JWTManager->create($user),
                 ], 200);
 
             } else {

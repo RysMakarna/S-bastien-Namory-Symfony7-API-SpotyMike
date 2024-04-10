@@ -63,6 +63,6 @@ class ResetPasswordController extends AbstractController
         return $this->json([
             'error'=>false,
             'message' => 'Votre mot de passe à été enregistrer avec succès.Vous pouvez vous connnecter avec  notre nouveau mot de passe ',
-        ]);
+        ],200);
     }
 }
