@@ -23,9 +23,6 @@ class Artist
     #[ORM\Column(length: 90)]
     private ?string $fullname = null;
 
-    #[ORM\Column(length: 90)]
-    private ?string $label = null;
-
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
@@ -75,17 +72,6 @@ class Artist
         return $this;
     }
 
-    public function getLabel(): ?string
-    {
-        return $this->label;
-    }
-
-    public function setLabel(string $label): static
-    {
-        $this->label = $label;
-
-        return $this;
-    }
 
     public function getDescription(): ?string
     {
@@ -159,9 +145,7 @@ class Artist
     public function serializer(){
         return [
             "fullname" => $this->getFullname(),
-            "label" => $this->getLabel(),
             "description" => $this->getDescription(),
-            "songs" => $this->getSongs()
         ];
     }
 }

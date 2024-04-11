@@ -19,7 +19,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
 
     // #[ORM\Id]
-    #[ORM\Column(length: 90,unique:true)]
+    #[ORM\Column(length: 90, unique: true)]
     private ?string $idUser = null;
 
     #[ORM\Column(length: 55)]
@@ -53,6 +53,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\OneToOne(mappedBy: 'User_idUser', cascade: ['persist', 'remove'])]
     private ?Artist $artist = null;
+
+    #[ORM\Column]
+    private ?bool $actif = null;
+
+    #[ORM\Column]
 
     public function getId(): ?int
     {
@@ -217,7 +222,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getUserIdentifier(): string
     {
-        return(string) $this->email;
+        return (string) $this->email;
     }
     public function UserSerializer()
     {
@@ -237,24 +242,51 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $dateOfBirth = $this->getBirthday();
 
         // Formater la date de naissance au format 'd-m-Y' si elle est disponible
-     
+
         return [
             "idUser" => $this->getIdUser(),
             "firstname" => $this->getFirstname(),
             "lastname" => $this->getLastname(),
+            "email" => $this->getEmail(),
             "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
-            "Artist.createAt" => $this->getCreateAt()->format('d-m-Y'),];
+            "Artist.createAt" => $this->getCreateAt()->format('d-m-Y'),
+        ];
     }
-    public function UserSerialRegis(){
+    public function UserSerialRegis($artist)
+    {
         return [
             "firstname" => $this->getFirstname(),
             "lastname" => $this->getLastname(),
             "email" => $this->getEmail(),
             "tel" => $this->getTel(),
-            "sexe" => $this->getSexe(), 
-            "dateBirth" => $this->getBirthday(), // Will need to be in format('d-m-Y'),
-            "createAt" => $this->getCreateAt(),
-            "updateAt" => $this->getUpdateAt(),
+            "sexe" => $this->getSexe(),
+            "artist"=>$artist ?$artist->serializer() :null,
+            "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
+            "createAt" => $this->getCreateAt()->format('d-m-Y'),
         ];
+    }
+    public function UserSerial()
+    {
+        return [
+            "firstname" => $this->getFirstname(),
+            "lastname" => $this->getLastname(),
+            "email" => $this->getEmail(),
+            "tel" => $this->getTel(),
+            "sexe" => $this->getSexe(),
+            "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
+            "createAt" => $this->getCreateAt()->format('d-m-Y'),
+        ];
+    }
+
+    public function isActif(): ?bool
+    {
+        return $this->actif;
+    }
+
+    public function setActif(bool $actif): static
+    {
+        $this->actif = $actif;
+
+        return $this;
     }
 }
