@@ -92,21 +92,30 @@ class UserController extends AbstractController
     }
 
 
-    #[Route('/delete/user/{id}', name: 'app_delete_user', methods: ['delete'])]
-    public function delete(int $id): JsonResponse
+    #[Route('/account-deactivation', name: 'app_delete_user', methods: ['delete'])]
+    public function delete($request): JsonResponse
     {
-        $user = $this->entityManager->getRepository(User::class)->find($id);
-        if (!$user) {
-            return $this->json([
-                'message' => 'Aucune compte avec ce id à modifier !',
-            ], 444);
+        $currentUser = $this->tokenVerifier->checkToken($request);
+        if (gettype($currentUser) == 'boolean') {
+            return $this->json($this->tokenVerifier->sendJsonErrorToken());
         }
-        $this->entityManager->remove($user);
-        $this->entityManager->flush();
 
+        if($currentUser->getActif() === 0){
+            return $this->json([
+                "error"=>true,
+                "message"=>"Le compte est déjà désactivé.",
+            ], 409);
+        }
+
+        $currentUser->setActif(0);
+
+        $this->entityManager->persist($currentUser);
+        $this->entityManager->flush();
         return $this->json([
-            'message' => 'Utisateur supprimer avec succès!',
+            'error' => false,
+            'message' => "Votre compte a été désactivé avec succès. Nous sommes désolé de vous voir partir.",
         ], 200);
+
     }
 
     private function sendErrorMessage400(int $errorCode){
