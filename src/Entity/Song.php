@@ -31,6 +31,9 @@ class Song
     private ?bool $visibility = true;
 
     #[ORM\Column]
+    private ?int $actif = 1;
+
+    #[ORM\Column]
     private ?\DateTimeImmutable $createAt = null;
 
     #[ORM\ManyToMany(targetEntity: Artist::class, inversedBy: 'songs')]
@@ -109,6 +112,16 @@ class Song
     {
         $this->visibility = $visibility;
 
+        return $this;
+    }
+
+    public function getActif(): ?int
+    {
+        return $this->actif;
+    }
+
+    public function setActif(?int $actif): static
+    {
         return $this;
     }
 

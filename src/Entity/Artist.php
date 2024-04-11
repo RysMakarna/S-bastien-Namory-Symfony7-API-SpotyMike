@@ -26,6 +26,9 @@ class Artist
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
+    #[ORM\Column]
+    private ?int $actif = 1;
+
     #[ORM\ManyToMany(targetEntity: Song::class, mappedBy: 'Artist_idUser')]
     private Collection $songs;
 
@@ -82,6 +85,16 @@ class Artist
     {
         $this->description = $description;
 
+        return $this;
+    }
+
+    public function getActif(): ?int
+    {
+        return $this->actif;
+    }
+
+    public function setActif(?int $actif): static
+    {
         return $this;
     }
 

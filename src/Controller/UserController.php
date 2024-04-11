@@ -4,6 +4,7 @@ namespace App\Controller;
 
 
 use App\Entity\User;
+use App\Entity\Artist;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -94,7 +95,8 @@ class UserController extends AbstractController
 
     #[Route('/account-deactivation', name: 'app_delete_user', methods: ['delete'])]
     public function delete($request): JsonResponse
-    {
+    {   
+        $repository = $this->entityManager->getRepository(Artist::class);
         $currentUser = $this->tokenVerifier->checkToken($request);
         if (gettype($currentUser) == 'boolean') {
             return $this->json($this->tokenVerifier->sendJsonErrorToken());
@@ -108,6 +110,18 @@ class UserController extends AbstractController
         }
 
         $currentUser->setActif(0);
+        $artist=$repository->findOneBy(["User_idUser" => $currentUser->idUser]);
+        if ($artist){
+            $artist->setActif(0);
+            foreach($artist->getAlbums() as $album){
+                $album->setActif(0);
+                $this->entityManager->persist($album);
+                foreach($album->getSongIdSong() as $song){
+                    $song->setActif(0);
+                    $this->entityManager->persist($song);
+                }
+            }
+        }
 
         $this->entityManager->persist($currentUser);
         $this->entityManager->flush();

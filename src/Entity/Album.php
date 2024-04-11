@@ -30,6 +30,9 @@ class Album
     private ?\DateTimeImmutable $createAt = null;
 
     #[ORM\Column]
+    private ?int $actif = 1;
+
+    #[ORM\Column]
     private ?int $year = 2024;
 
     #[ORM\ManyToOne(inversedBy: 'albums')]
@@ -105,6 +108,16 @@ class Album
     {
         $this->year = $year;
 
+        return $this;
+    }
+
+    public function getActif(): ?int
+    {
+        return $this->actif;
+    }
+
+    public function setActif(?int $actif): static
+    {
         return $this;
     }
 
