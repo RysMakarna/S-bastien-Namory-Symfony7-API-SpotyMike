@@ -25,14 +25,13 @@ class ResetPasswordController extends AbstractController
     #[Route('/reset-password/{token}', name: 'app_reset_password', methods: ['POST', 'GET'])]
     public function index(string $token,UserPasswordHasherInterface $passwordHash,Request $request): JsonResponse
     {
-        if(strlen($token)<825){
+        if(strlen($token)<808){
             return $this->json([
                 'error' =>true, 
                 'message' => 'Token de réinitialisation manquant ou invalide.Veuillez utiliser le lien fourni dans l\'email de réinitialisation de mot de passe',
             ]);
         }
         $currentUser = $this->tokenVerifier->isExpiredToken($token);
-        //dd($currentUser);
         if (gettype($currentUser) == 'boolean'){    
             return $this->json([
                 'error'=>true,
@@ -40,7 +39,6 @@ class ResetPasswordController extends AbstractController
             ]);
         }
         $user = $currentUser;
-
         $password = $request->get('password');
         $password_pattern = '/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,20}$/';
         if(empty($password)){
@@ -65,4 +63,4 @@ class ResetPasswordController extends AbstractController
             'message' => 'Votre mot de passe à été enregistrer avec succès.Vous pouvez vous connnecter avec  notre nouveau mot de passe ',
         ],200);
     }
-}
+};

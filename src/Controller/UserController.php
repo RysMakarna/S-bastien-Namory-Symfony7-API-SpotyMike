@@ -10,9 +10,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
-
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 class UserController extends AbstractController
 {
     private $entityManager;
@@ -43,7 +42,7 @@ class UserController extends AbstractController
 
     }
     #[Route('/password-lost', name: 'app_read_user')]
-    public function DeleteAcount(Request $request): JsonResponse
+    public function DeleteAcount(Request $request,JWTTokenManagerInterface $jwtManager): JsonResponse
     {
         $email_validation_regex = '/^\\S+@\\S+\\.\\S+$/';
         $email = $request->get('email');
@@ -67,24 +66,27 @@ class UserController extends AbstractController
             return $this->json([
                 'error'=>true,
                 'message'=> 'Aucun compte  n\'est associé à cet email.Veuillez  vérifier et réssayer'
-            ],404);
+            ],403);
         }
         $cache = new FilesystemAdapter();
         $cacheKey = 'reset_password_' . urlencode($email);
-        $cacheItem = $cache->getItem($cacheKey);
-        $requestCount = $cacheItem->get() ?? 0;
+        $nbTentative = $cache->getItem($cacheKey);
+        $allTentative = $nbTentative->get() ?? 0;
  
- 
-        $cacheItem->set($requestCount + 1);
-        $cacheItem->expiresAfter(5); // 20 seconds
-        $cache->save($cacheItem);
-        dd($requestCount);
-
-
-
+        $nbTentative->set($allTentative + 1);
+        $nbTentative->expiresAfter(300); // 5minutes
+        $cache->save($nbTentative);
+        
+        if($allTentative >= 3){
+            return $this->json([
+                'message' => 'Trop de demande de réinitialisation de mot de passe.Veuillez attendre avant de réessayer dans 5 minutes',
+            ], 429);
+        }
+        $token = $this->tokenVerifier->generateToken($email,time()+120);//Génération du token 
         return $this->json([
-            'message' => 'Un email de réinitialisation de mot de passe à été envoyé à votre adresse email.
-            Veuillez suivre les instructions contenues dans l\'email pour réinitialiser votre mot de passe.',
+            'success'=>true,
+            'message' => 'Un email de réinitialisation de mot de passe à été envoyé à votre adresse email.Veuillez suivre les instructions contenues dans l\'email pour réinitialiser votre mot de passe.',
+            'token'=> $token,  
         ], 200);
     }
 

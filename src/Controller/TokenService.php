@@ -47,11 +47,13 @@ class TokenService
         $expiration = $dataToken->getPayload()['exp'];
         $expirationDate = new \DateTime("@$expiration");
         $now = new \DateTime();
-        $user = $this->userRepository->findOneBy(["email" => $dataToken->getPayload()["username"]]);
-        //dd($expirationDate->diff($now)->i);
-        return ($expirationDate->diff($now)->i<2)?true:$user;
+        $user = $this->userRepository->findOneBy(["email" => $dataToken->getPayload()["email"]]);
+        return ($expirationDate->diff($now)->i===0)?true:$user;
        //return ($dateNow> $expiration) ? 'Token espiré' :$user;
 
+    }
+    public function generateToken(string $email, int $exp){
+        return $this->jwtProvider->create(["email" => $email, "exp" => $exp])->getToken();
     }
     public function sendJsonErrorToken(): array
     {
