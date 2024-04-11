@@ -8,10 +8,10 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use Symfony\Component\Validator\Constraints\Length;
 
 class LoginController extends AbstractController
 {
@@ -27,7 +27,6 @@ class LoginController extends AbstractController
         $this->repository = $entityManager->getRepository(User::class);
 
         $this->repositoryArtist = $entityManager->getRepository(Artist::class);
-        $this->JWTManager = $JWTManager;
 
     }
     // pointless but need to test something
@@ -212,45 +211,38 @@ class LoginController extends AbstractController
                     "error"=>true,
                     "message"=>'Des champs obligatoires sont manquants',
                     ],400);
-                break;
             case 5:
                 return $this->json([
                     "error"=>true,
                     "message"=>'Le format de l\'email est invalide',
                     ],400);
-                break;
             case 6:
                 return $this->json([
                     "error"=>true,
                     "message"=>'Le mot de passe doit contenir au moins une majuscule, une 
                     minuscule, un chiffre, un caractère sépcial et avoir 8 caractères minimum',
                     ],400);
-            break;
             case 7:
                 return $this->json([
                     "error"=>true,
                     "message"=>'Le format de la date de naissance est invalide.
                     Le format attendu est JJ/MM/AAAA',
                     ],400);
-            break;
             case 8:
                 return $this->json([
                     "error"=>true,
                     "message"=>'L\'utilisateur doit avoir au moins 12 ans',
                     ],400);
-            break;
             case 9:
                 return $this->json([
                     "error"=>true,
                     "message"=>'Le format du numéro de téléphone est invalide',
                     ],400);
-            break;
             case 10:
                 return $this->json([
                     "error"=>true,
                     "message"=>'La valeur du champ sexe est invalide. Les valeurs autorisées sont 0 pour Femme, 1 pour Homme, 2 pour Non-Binaire',
                     ],400);
-            break;
             default:
 
         }

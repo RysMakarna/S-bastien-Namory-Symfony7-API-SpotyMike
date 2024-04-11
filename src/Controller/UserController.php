@@ -43,15 +43,22 @@ class UserController extends AbstractController
     }
 
     #[Route('/user', name: 'app_update_user', methods: ['POST'])]
-    public function readOne(Request $request): JsonResponse
+    public function update(Request $request): JsonResponse
     {
         $currentUser = $this->tokenVerifier->checkToken($request);
         if (gettype($currentUser) == 'boolean') {
             return $this->json($this->tokenVerifier->sendJsonErrorToken());
         }
         $repository = $this->entityManager->getRepository(User::class);
-        $otherUser = $repository->findOneBy($request->get('tel'));
+        
 
+        if(!$request->get('firstname') || !$request->get('lastname') || !$request->get('tel') || !$request->get('sexe')){
+            return $this->json([
+                "error"=> true,
+                "message"=> "Erreur de validation des données.",
+            ], 422);
+        }
+        $otherUser = $repository->findOneBy(["tel" => $request->get('tel')]);
         if ($currentUser->getEmail() != $otherUser->getEmail()){
             return $this->json([
                 'error'=> true,
@@ -66,11 +73,20 @@ class UserController extends AbstractController
             return $this->sendErrorMessage400(2);
         }
         
-        if(!$request->get('firstname') || !$request->get('lastname') || !preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $request->get('firstname')) || !preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $request->get('lastname'))){
+        if(!preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $request->get('firstname')) || !preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $request->get('lastname'))){
             return $this->sendErrorMessage400(3);
         }
-        
+        $currentUser->setFirstname($request->get('firstname'));
+        $currentUser->setLastname($request->get('lastname'));
+        $currentUser->setTel($request->get('tel'));
+        $currentUser->setSexe($sexe);
 
+        $this->entityManager->persist($currentUser);
+                $this->entityManager->flush();
+                return $this->json([
+                    'error' => false,
+                    'message' => "Votre inscription a bien été prise en compte.",
+                ], 201);
     }
 
 
@@ -92,7 +108,23 @@ class UserController extends AbstractController
     }
 
     private function sendErrorMessage400(int $errorCode){
-
+        switch($errorCode){
+            case 1:
+                return $this->json([
+                    "error" => true,
+                    "message" => "Le format du numéro de téléphone est invalide",
+                ], 400);
+            case 2:
+                return $this->json([
+                    "error"=> true,
+                    "message"=> "La valeur du champ sexe est invalide. Les valeurs autorisées sont 0 pour Femme, 1 pour Homme, 2 pour Non-Binaire",
+                ], 400);
+            case 3:
+                return $this->json([
+                    "error" => true,
+                    "message" => "Les données fournies sont invalides ou incomplètes",
+                ], 400);
+        } 
     }
 
 }

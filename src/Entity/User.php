@@ -55,7 +55,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?Artist $artist = null;
 
     #[ORM\Column]
-    private ?bool $actif = null;
+    private ?int $actif = 1;
 
     #[ORM\Column]
 
@@ -239,20 +239,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
     public function Serializer()
     {
-        $dateOfBirth = $this->getBirthday();
-
-        // Formater la date de naissance au format 'd-m-Y' si elle est disponible
-
         return [
             "idUser" => $this->getIdUser(),
             "firstname" => $this->getFirstname(),
             "lastname" => $this->getLastname(),
             "email" => $this->getEmail(),
             "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
-            "Artist.createAt" => $this->getCreateAt()->format('d-m-Y'),
+            "Artist.createAt" => $this->getCreateAt()->format('Y-m-d'),
         ];
     }
-    public function UserSerialRegis($artist)
+    public function UserSerialRegis()
     {
         return [
             "firstname" => $this->getFirstname(),
@@ -260,9 +256,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             "email" => $this->getEmail(),
             "tel" => $this->getTel(),
             "sexe" => $this->getSexe(),
-            "artist"=>$artist ?$artist->serializer() :null,
             "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
-            "createAt" => $this->getCreateAt()->format('d-m-Y'),
+            "createAt" => $this->getCreateAt()->format('Y-m-d'),
+            "updateAt" => $this->getUpdateAt()->format('Y-m-d'),
         ];
     }
     public function UserSerial()
@@ -274,7 +270,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             "tel" => $this->getTel(),
             "sexe" => $this->getSexe(),
             "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
-            "createAt" => $this->getCreateAt()->format('d-m-Y'),
+            "createAt" => $this->getCreateAt()->format('Y-m-d'),
         ];
     }
 
