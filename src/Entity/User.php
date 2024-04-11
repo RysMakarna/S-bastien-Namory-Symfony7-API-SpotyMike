@@ -250,12 +250,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
     public function UserSerialRegis()
     {
+        $sexe = $this->getSexe() === 0 ? 'Homme' : ($this->getSexe() === 1 ? 'Femme' : ($this->getSexe() === 2 ? 'Non-Binaire': null));
+
         return [
             "firstname" => $this->getFirstname(),
             "lastname" => $this->getLastname(),
             "email" => $this->getEmail(),
             "tel" => $this->getTel(),
-            "sexe" => $this->getSexe(),
+            "sexe" => $sexe,
             "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
             "createAt" => $this->getCreateAt()->format('Y-m-d'),
             "updateAt" => $this->getUpdateAt()->format('Y-m-d'),
@@ -263,6 +265,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
     public function UserSerial()
     {
+        $sexe = $this->getSexe() === 0 ? 'Homme' : ($this->getSexe() === 1 ? 'Femme' : ($this->getSexe() === 2 ? 'Non-Binaire': null));
+
         return [
             "firstname" => $this->getFirstname(),
             "lastname" => $this->getLastname(),

@@ -156,7 +156,7 @@ class LoginController extends AbstractController
         if(!preg_match('^0[1-7][0-9]{8}$^', $request->get('tel'))){ //Find why need '' on POSTMAN
             return $this->sendErrorMessage400(9);
         }
-        $sexe = strtolower($request->get('sexe')) == 'homme' ? 0 : (strtolower($request->get('sexe')) == 'femme' ? 1 : (strtolower($request->get('sexe')) == 'non-binaire' ? 2 : null));
+        $sexe = $request->get('sexe') === 0 ? 0 : ($request->get('sexe') === 1 ? 1 : ($request->get('sexe') === 2 ? 2 : null));
         if ($sexe === null) {
             return $this->sendErrorMessage400(10);
         }
@@ -219,14 +219,12 @@ class LoginController extends AbstractController
             case 6:
                 return $this->json([
                     "error"=>true,
-                    "message"=>'Le mot de passe doit contenir au moins une majuscule, une 
-                    minuscule, un chiffre, un caractère sépcial et avoir 8 caractères minimum',
+                    "message"=>'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère sépcial et avoir 8 caractères minimum',
                     ],400);
             case 7:
                 return $this->json([
                     "error"=>true,
-                    "message"=>'Le format de la date de naissance est invalide.
-                    Le format attendu est JJ/MM/AAAA',
+                    "message"=>'Le format de la date de naissance est invalide. Le format attendu est JJ/MM/AAAA',
                     ],400);
             case 8:
                 return $this->json([
