@@ -156,7 +156,7 @@ class LoginController extends AbstractController
         if(!preg_match('^0[1-7][0-9]{8}$^', $request->get('tel'))){ //Find why need '' on POSTMAN
             return $this->sendErrorMessage400(9);
         }
-        $sexe = $request->get('sexe') === 0 ? 0 : ($request->get('sexe') === 1 ? 1 : ($request->get('sexe') === 2 ? 2 : null));
+        $sexe = $request->get('sexe') === '0' ? 0 : ($request->get('sexe') === '1' ? 1 : ($request->get('sexe') === '2' ? 2 : null));
         if ($sexe === null) {
             return $this->sendErrorMessage400(10);
         }

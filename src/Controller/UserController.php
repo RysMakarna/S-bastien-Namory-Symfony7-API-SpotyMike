@@ -52,12 +52,17 @@ class UserController extends AbstractController
         $repository = $this->entityManager->getRepository(User::class);
         
 
-        if(!$request->get('firstname') || !$request->get('lastname') || !$request->get('tel') || !$request->get('sexe')){
+        if(!$request->get('firstname') || !$request->get('lastname') || !$request->get('tel') || $request->get('sexe') === null){
             return $this->json([
                 "error"=> true,
                 "message"=> "Erreur de validation des données.",
             ], 422);
         }
+        
+        if(!preg_match('^0[1-7][0-9]{8}$^', $request->get('tel'))){
+            return $this->sendErrorMessage400(1);
+        }
+
         $otherUser = $repository->findOneBy(["tel" => $request->get('tel')]);
         if ($currentUser->getEmail() != $otherUser->getEmail()){
             return $this->json([
@@ -65,10 +70,7 @@ class UserController extends AbstractController
                 "message"=>"Conflit de données. Le numéro est déjà utilisé par un autre utilisateur.",
                 ],409);
         }
-        if(!preg_match('^0[1-7][0-9]{8}$^', $request->get('tel'))){
-            return $this->sendErrorMessage400(1);
-        }
-        $sexe = $request->get('sexe') === 0 ? 0 : ($request->get('sexe') === 1 ? 1 : ($request->get('sexe') === 2 ? 2 : null));
+        $sexe = $request->get('sexe') === '0' ? 0 : ($request->get('sexe') === '1' ? 1 : ($request->get('sexe') === '2' ? 2 : null));
         if ($sexe === null) {
             return $this->sendErrorMessage400(2);
         }
