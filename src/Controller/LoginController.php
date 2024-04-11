@@ -94,7 +94,7 @@ class LoginController extends AbstractController
                     'error' => false,
                     'message'=>'l\'utilisateur à été authentifié avec succès',
                     'user' => [
-                        $user->UserSerialRegis( $artist )
+                        $user->UserSerialRegis()
                     ],
                 // Assurez-vous que la méthode serialize() retourne les données au format attendu.  
                     'token' => $this->JWTManager->create($user)
