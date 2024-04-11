@@ -55,7 +55,7 @@ class LoginController extends AbstractController
             return $this->sendErrorMessage408(false);
         }
 
-        if (!preg_match($password_pattern, $password) && !strlen($password)) {
+        if (!preg_match($password_pattern, $password) || strlen($password)< 8){
             return $this->json([
                 'error' => true,
                 'message' => 'Le mot de passe doit contenir au moins une majuscule,une minuscule ,un chiffre,une caractère spécial et avoir 8 caractères minimun '
