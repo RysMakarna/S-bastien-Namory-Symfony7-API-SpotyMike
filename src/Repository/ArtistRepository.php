@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Artist;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -36,13 +37,22 @@ class ArtistRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?Artist
-    //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    public function findOneBySomeField($userId)
+    {
+        return $this->createQueryBuilder('a')
+            ->where('a.User_idUser = :userId')
+            ->setParameter('userId', $userId)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+    public function GetExiteFullname($fullname)
+    {
+        return $this->createQueryBuilder('a')
+            ->select('count(a.id)')
+            ->where('a.fullname = :fullname')
+            ->setParameter('fullname', $fullname)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 }

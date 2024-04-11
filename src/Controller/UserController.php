@@ -22,6 +22,7 @@ class UserController extends AbstractController
         $this->entityManager = $entityManager;
         $this->repository = $entityManager->getRepository(User::class);
         $this->format = 'd-m-Y';
+        
     }
 
     #[Route('/register', name: 'app_add_user', methods: ['POST'])]
@@ -32,6 +33,7 @@ class UserController extends AbstractController
         $existingUser = $this->repository->findOneBy(['email' => $email]);
 
         $Date = \DateTime::createFromFormat($this->format, $request->get('birthday'));
+        
         $DiG = $Date->format($this->format) === $request->get('birthday'); // DiG means Date is Good
 
         if ($existingUser) {
@@ -40,15 +42,15 @@ class UserController extends AbstractController
             ], 409);
         }
         if (!$request->get('email') || !$request->get('password') || !$request->get('firstname') || 
-            !$request->get('lastname') || !$request->get('dateBirth') ) {
+            !$request->get('lastname') || !$request->get('birthday') ) {
             return $this->json([
                 'error' => true,
                 'message' => 'Une ou plusieurs données obligatoires sont manquantes'
             ], 400);
         }
-      
-        if (!preg_match('/^\S+@\+\.\S+$/', $request->get('email')) || !$DiG ||
-        preg_match('/[0][1-9][0-9]{8}$/', $request->get('tel'))) {
+
+        if (!preg_match('/^\\S+@\\S+\\.\\S+$/', $request->get('email')) || $DiG == false ||
+        !preg_match('/0[1-9][0-9]{8}$/', $request->get('tel'))) {
             return $this->json([
                 "message" => "Une ou plusieurs données sont érronées."
             ], 400);
@@ -70,7 +72,7 @@ class UserController extends AbstractController
                 $user->setEmail($request->get('email'));
                 $user->setFirstname($request->get('firstname'));
                 $user->setLastname($request->get('lastname'));
-                $birthday = $request->get('birthday')->format('Y-m-d');
+                $birthday = $Date;
                 $user->setBirthday($birthday);
                 # Verify Sex and Tel
                 $sexe = $request->get('sexe') ? $request->get('sexe') : 'Non Précisé';
@@ -87,13 +89,15 @@ class UserController extends AbstractController
                 # Create and Update Time
                 $user->setCreateAt(new \DateTimeImmutable());
                 $user->setUpdateAt(new \DateTime());
+                $user->setActif(true);
 
                 #Save and Send to db
                 $this->entityManager->persist($user);
                 $this->entityManager->flush();
                 return $this->json([
                     'error' => false,
-                    'message' => "L'utilisateur a bien été créé avec succès." . $user->UserSerialRegis(),
+                    'message' => "L'utilisateur a bien été créé avec succès.",
+                    'user' => $user->UserSerial()
                 ], 201);
     }
 
