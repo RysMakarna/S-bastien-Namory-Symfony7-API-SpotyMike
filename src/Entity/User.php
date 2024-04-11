@@ -243,7 +243,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             "firstname" => $this->getFirstname(),
             "lastname" => $this->getLastname(),
             "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
-            "Artist.createAt" => $this->getCreateAt()->format('d-m-Y'),
+            "Artist.createAt" => $this->getCreateAt()->format('d-m-Y'),];
+    }
     public function UserSerialRegis(){
         return [
             "firstname" => $this->getFirstname(),
