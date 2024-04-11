@@ -5,13 +5,11 @@ namespace App\Controller;
 
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use PhpParser\Builder\Class_;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 
@@ -64,7 +62,7 @@ class UserController extends AbstractController
             ],400);
         }
         //verifier si l'utilisateur à un email
-        $current_user = $this->repository->findOneBy(['email'=> $email]);
+        $current_user =$this->entityManager->getRepository(User::class)->findOneBy(['email'=> $email]);
         if($current_user == null){
             return $this->json([
                 'error'=>true,
@@ -80,6 +78,7 @@ class UserController extends AbstractController
         $cacheItem->set($requestCount + 1);
         $cacheItem->expiresAfter(5); // 20 seconds
         $cache->save($cacheItem);
+        dd($requestCount);
 
 
 

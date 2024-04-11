@@ -255,7 +255,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             "Artist.createAt" => $this->getCreateAt()->format('d-m-Y'),
         ];
     }
-    public function UserSerialRegis($artist)
+    public function UserSerialRegis()
+    {
+        return [
+            "firstname" => $this->getFirstname(),
+            "lastname" => $this->getLastname(),
+            "email" => $this->getEmail(),
+            "tel" => $this->getTel(),
+            "sexe" => $this->getSexe(),
+            "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
+            "createAt" => $this->getCreateAt()->format('d-m-Y'),
+        ];
+    }
+    public function UserSeriaLogin($artist)
     {
         return [
             "firstname" => $this->getFirstname(),
