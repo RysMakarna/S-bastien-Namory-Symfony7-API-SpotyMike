@@ -123,7 +123,7 @@ class UserController extends AbstractController
         $allTentative = $nbTentative->get() ?? 0;
  
         $nbTentative->set($allTentative + 1);
-        $nbTentative->expiresAfter(5); // 5minutes
+        $nbTentative->expiresAfter(300); // 5minutes
         $cache->save($nbTentative);
         
         if($allTentative >= 3){
