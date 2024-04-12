@@ -75,20 +75,6 @@ class UserController extends AbstractController
         if ($sexe === null) {
             return $this->sendErrorMessage400(2);
         }
-        if(!preg_match($email_validation_regex,$email)){
-            return $this->json([
-            'error'=>true,
-            'message'=> 'Le format de l \'email est invalide.Veuillez entrer un email valide'
-            ],400);
-        }
-        //verifier si l'utilisateur à un email
-        $current_user =$this->entityManager->getRepository(User::class)->findOneBy(['email'=> $email]);
-        if($current_user == null){
-            return $this->json([
-                'error'=>true,
-                'message'=> 'Aucun compte  n\'est associé à cet email.Veuillez  vérifier et réssayer'
-            ],403);
-        }
         if(!preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $request->get('firstname')) || !preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $request->get('lastname'))){
             return $this->sendErrorMessage400(3);
         }
@@ -116,8 +102,14 @@ class UserController extends AbstractController
                 'message'=> 'L\email manquant.Veuillez fornir votre mail pour la récupération du mot de passe.'
             ],400);
         }
-      
+        
+        if(!preg_match($email_validation_regex,$email)){
+            return $this->json([
+            'error'=>true,
+            'message'=> 'Le format de l \'email est invalide.Veuillez entrer un email valide'
+            ],400);
         }
+
         $cache = new FilesystemAdapter();
         $cacheKey = 'reset_password_' . urlencode($email);
         $nbTentative = $cache->getItem($cacheKey);
