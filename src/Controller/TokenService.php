@@ -6,7 +6,6 @@ use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWSProvider\JWSProviderInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-
 use function Symfony\Component\Clock\now;
 
 class TokenService
@@ -29,31 +28,31 @@ class TokenService
                 $token = $data[1];
                 try {
                     $dataToken = $this->jwtProvider->load($token);
-                    if ($dataToken->isVerified($token)) {
+                    if ($dataToken-> isVerified()) {
                         $user = $this->userRepository->findOneBy(["email" => $dataToken->getPayload()["username"]]);
                         return ($user) ? $user : false;
                     }
                 } catch (\Throwable $th) {
                     return false;
                 }
+            }else{
+                
             }
-        } else {
-            return true;
+        }elseif($request){
+            //dd($request);
+            $token = $request->get("token"); // recupération du token
+            $dataToken = $this->jwtProvider->load($token);
+            if( $dataToken->isVerified()) {
+                $user = $this->userRepository->findOneBy(["email" => $dataToken->getPayload()["email"]]);
+                    return ($user) ? $user : false;
+            }
+            return false;
         }
         return false;
     }
-    public function isExpiredToken(string $token){
-        $dataToken = $this->jwtProvider->load($token);
-        $expiration = $dataToken->getPayload()['exp'];
-        $expirationDate = new \DateTime("@$expiration");
-        $now = new \DateTime();
-        $user = $this->userRepository->findOneBy(["email" => $dataToken->getPayload()["email"]]);
-        return ($expirationDate->diff($now)->i===0)?true:$user;
-       //return ($dateNow> $expiration) ? 'Token espiré' :$user;
 
-    }
     public function generateToken(string $email, int $exp){
-        return $this->jwtProvider->create(["email" => $email, "exp" => $exp])->getToken();
+        return $this->jwtProvider->create(["email" => $email, "exp" => $exp,"iat"=>time()])->getToken();
     }
     public function sendJsonErrorToken(): array
     {
