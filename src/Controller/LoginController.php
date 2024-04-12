@@ -66,7 +66,7 @@ class LoginController extends AbstractController
         if ($user) {
             $currentTime = new \DateTime();
             $UpdateDate = $user->getUpdateAt();
-            if ($user->getActif() == 0 || $user->getActif() == 2) {
+            if ($user->getActif() == 1) {
                 if ($user->getnbTentative() >= 5) { // verifie le temps
                     if( $UpdateDate->diff($currentTime)->i < 1){
                         return $this->json([
@@ -102,7 +102,7 @@ class LoginController extends AbstractController
             } else {
                 return $this->json([
                     'error' => true,
-                    'message' => 'le compte n\est plus actif  ou suspendu'
+                    'message' => 'le compte n\'est plus actif  ou suspendu'
                 ], 403);
             }
 
@@ -130,7 +130,9 @@ class LoginController extends AbstractController
         $existingUser = $this->repository->findOneBy(['email' => $email]);
 
         $dateBirth = \DateTime::createFromFormat('d/m/Y', $request->get('dateBirth'));
-        $DiG = $dateBirth->format('d/m/Y') === $request->get('dateBirth'); // DiG means Date is Good
+        if ($dateBirth){
+            $DiG = $dateBirth->format('d/m/Y') === $request->get('dateBirth'); // DiG means Date is Good
+        }
 
         
         //dd($request->get('password'));
@@ -146,7 +148,7 @@ class LoginController extends AbstractController
         if (!preg_match('^\S+@\S+\.\S+$^', $request->get('email'))) {
             return $this->sendErrorMessage400(5);
         }
-        if (!preg_match('^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z0-9]).{8,20}$^', $request->get('password'))){
+        if (!preg_match('/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,20}$/', $request->get('password'))){
             return $this->sendErrorMessage400(6);
         }
         if (!$dateBirth){

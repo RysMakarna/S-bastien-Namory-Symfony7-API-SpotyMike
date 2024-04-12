@@ -102,7 +102,7 @@ class ArtistController extends AbstractController
     public function readOne(Request $request): JsonResponse
     {
         $regex_idLabel = '/^12[0-9][a-zA-Z]$/';
-        $currentUser = $this->tokenVerifier->checkToken($request);
+        $currentUser = $this->tokenVerifier->checkToken($request,null);
         if (gettype($currentUser) == 'boolean') {
             return $this->json($this->tokenVerifier->sendJsonErrorToken());
         }

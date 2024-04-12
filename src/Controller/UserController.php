@@ -47,6 +47,7 @@ class UserController extends AbstractController
     public function update(Request $request): JsonResponse
     {
         $currentUser = $this->tokenVerifier->checkToken($request);
+
         if (gettype($currentUser) == 'boolean') {
             return $this->json($this->tokenVerifier->sendJsonErrorToken());
         }
@@ -65,7 +66,7 @@ class UserController extends AbstractController
         }
 
         $otherUser = $repository->findOneBy(["tel" => $request->get('tel')]);
-        if ($currentUser->getEmail() != $otherUser->getEmail()){
+        if ($otherUser && $currentUser->getEmail() != $otherUser->getEmail()){
           return $this->json([
             'error'=> true,
             "message"=>"Conflit de données. Le numéro est déjà utilisé par un autre utilisateur.",
@@ -109,14 +110,20 @@ class UserController extends AbstractController
             'message'=> 'Le format de l \'email est invalide.Veuillez entrer un email valide'
             ],400);
         }
-
+        $current_user =$this->entityManager->getRepository(User::class)->findOneBy(['email'=> $email]);
+        if($current_user == null){
+            return $this->json([
+                'error'=>true,
+                'message'=> 'Aucun compte  n\'est associé à cet email.Veuillez  vérifier et réssayer'
+            ],403);
+        }
         $cache = new FilesystemAdapter();
         $cacheKey = 'reset_password_' . urlencode($email);
         $nbTentative = $cache->getItem($cacheKey);
         $allTentative = $nbTentative->get() ?? 0;
  
         $nbTentative->set($allTentative + 1);
-        $nbTentative->expiresAfter(300); // 5minutes
+        $nbTentative->expiresAfter(5); // 5minutes
         $cache->save($nbTentative);
         
         if($allTentative >= 3){
@@ -131,9 +138,8 @@ class UserController extends AbstractController
             'token'=> $token,  
         ], 200);
     }
-
-    #[Route('/account-deactivation', name: 'app_delete_user', methods: ['delete'])]
-    public function delete($request): JsonResponse
+    #[Route('/account-deactivation', name: 'app_delete_user', methods: ['DELETE'])]
+    public function delete(Request $request): JsonResponse
     {   
         $repository = $this->entityManager->getRepository(Artist::class);
         $currentUser = $this->tokenVerifier->checkToken($request);
@@ -149,7 +155,7 @@ class UserController extends AbstractController
         }
 
         $currentUser->setActif(0);
-        $artist=$repository->findOneBy(["User_idUser" => $currentUser->idUser]);
+        $artist=$repository->findOneBy(["User_idUser" => $currentUser->getIdUser()]);
         if ($artist){
             $artist->setActif(0);
             foreach($artist->getAlbums() as $album){

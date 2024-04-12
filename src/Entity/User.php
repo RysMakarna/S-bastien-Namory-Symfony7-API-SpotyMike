@@ -265,7 +265,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
     public function UserSeriaLogin($artist)
     {
-        $sexe = $this->getSexe() === 0 ? 'Homme' : ($this->getSexe() === 1 ? 'Femme' : ($this->getSexe() === 2 ? 'Non-Binaire': null));
+        $sexe = $this->getSexe() === '0' ? 'Homme' : ($this->getSexe() === '1' ? 'Femme' : ($this->getSexe() === '2' ? 'Non-Binaire': null));
 
         return [
             "firstname" => $this->getFirstname(),
@@ -273,6 +273,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             "email" => $this->getEmail(),
             "tel" => $this->getTel(),
             "sexe" => $sexe,
+            "artist"=> $artist?$artist->serializer() :null,
             "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
             "createAt" => $this->getCreateAt()->format('Y-m-d'),
             "updateAt" => $this->getUpdateAt()->format('Y-m-d'),
