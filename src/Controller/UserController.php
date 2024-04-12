@@ -132,8 +132,8 @@ class UserController extends AbstractController
         ], 200);
     }
 
-    #[Route('/account-deactivation', name: 'app_delete_user', methods: ['delete'])]
-    public function delete($request): JsonResponse
+    #[Route('/account-deactivation', name: 'app_delete_user', methods: ['DELETE'])]
+    public function delete(Request $request): JsonResponse
     {   
         $repository = $this->entityManager->getRepository(Artist::class);
         $currentUser = $this->tokenVerifier->checkToken($request);
@@ -149,7 +149,7 @@ class UserController extends AbstractController
         }
 
         $currentUser->setActif(0);
-        $artist=$repository->findOneBy(["User_idUser" => $currentUser->idUser]);
+        $artist=$repository->findOneBy(["User_idUser" => $currentUser->getIdUser()]);
         if ($artist){
             $artist->setActif(0);
             foreach($artist->getAlbums() as $album){

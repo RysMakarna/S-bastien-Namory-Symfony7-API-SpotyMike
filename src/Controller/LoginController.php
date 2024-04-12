@@ -146,19 +146,24 @@ class LoginController extends AbstractController
         if (!preg_match('^\S+@\S+\.\S+$^', $request->get('email'))) {
             return $this->sendErrorMessage400(5);
         }
-        if (!preg_match('^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z0-9]).{8,20}$^', $request->get('password'))){
+        if (!preg_match('^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[a-zA-Z0-9]).{8,20}$^', $request->get('password'))){
             return $this->sendErrorMessage400(6);
         }
         if (!$dateBirth){
             return $this->sendErrorMessage400(7);
         }
-        if(!preg_match('^0[1-7][0-9]{8}$^', $request->get('tel'))){ //Find why need '' on POSTMAN
-            return $this->sendErrorMessage400(9);
+        if ($request->get('tel')){
+            if(!preg_match('^0[1-7][0-9]{8}$^', $request->get('tel'))){ //Find why need '' on POSTMAN
+                return $this->sendErrorMessage400(9);
+            }
         }
-        $sexe = $request->get('sexe') === '0' ? 0 : ($request->get('sexe') === '1' ? 1 : ($request->get('sexe') === '2' ? 2 : null));
-        if ($sexe === null) {
-            return $this->sendErrorMessage400(10);
+        if ($request->get('sexe')){
+            $sexe = $request->get('sexe') === '0' ? 0 : ($request->get('sexe') === '1' ? 1 : ($request->get('sexe') === '2' ? 2 : null));
+            if ($sexe === null) {
+                return $this->sendErrorMessage400(10);
+            }
         }
+        
 
         #Check if User is 12+ YO
         $currentDate = new \DateTime();
@@ -179,9 +184,13 @@ class LoginController extends AbstractController
                 $birthday = $dateBirth;
                 $user->setBirthday($birthday);
                 # Verify Sex and Tel
-                $user->setSexe($sexe);
-                $tel = $request->get('tel') ? $request->get('tel') : NULL;
-                $user->setTel($tel);
+                if ($sexe){
+                    $user->setSexe($sexe);
+                }
+                if ($request->get('tel')){            
+                    $tel = $request->get('tel') ? $request->get('tel') : NULL;
+                    $user->setTel($tel);
+                }
                 # Encrypt and Save Password
                 //$encrypte = password_hash($request->get('encrypte'), PASSWORD_DEFAULT);
                 $password = $request->get('password');
