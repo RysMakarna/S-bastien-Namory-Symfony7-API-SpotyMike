@@ -86,14 +86,12 @@ class LoginController extends AbstractController
                     return $this->sendErrorMessage408(true);
                 }
                 $this->ResetNumberTentative($user);
-                $id = $user->getId();
-                $artist = $this->repositoryArtist->findOneBySomeField($id);
                 //$this->repository->findOneBySomeField($id);
                 return $this->json([
                     'error' => false,
                     'message'=>'l\'utilisateur à été authentifié avec succès',
                     'user' => [
-                        $user->UserSeriaLogin( $artist )
+                        $user->UserSeriaLogin()
                     ],
                 // Assurez-vous que la méthode serialize() retourne les données au format attendu.  
                     'token' => $this->JWTManager->create($user),
@@ -102,7 +100,7 @@ class LoginController extends AbstractController
             } else {
                 return $this->json([
                     'error' => true,
-                    'message' => 'le compte n\est plus actif  ou suspendu'
+                    'message' => 'le compte n\'est plus actif  ou suspendu'
                 ], 403);
             }
 
@@ -130,7 +128,9 @@ class LoginController extends AbstractController
         $existingUser = $this->repository->findOneBy(['email' => $email]);
 
         $dateBirth = \DateTime::createFromFormat('d/m/Y', $request->get('dateBirth'));
-        $DiG = $dateBirth->format('d/m/Y') === $request->get('dateBirth'); // DiG means Date is Good
+        if ($dateBirth){
+            $DiG = $dateBirth->format('d/m/Y') === $request->get('dateBirth'); // DiG means Date is Good
+        }
 
         
         //dd($request->get('password'));
@@ -146,7 +146,7 @@ class LoginController extends AbstractController
         if (!preg_match('^\S+@\S+\.\S+$^', $request->get('email'))) {
             return $this->sendErrorMessage400(5);
         }
-        if (!preg_match('^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[a-zA-Z0-9]).{8,20}$^', $request->get('password'))){
+        if (!preg_match('/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,20}$/', $request->get('password'))){
             return $this->sendErrorMessage400(6);
         }
         if (!$dateBirth){

@@ -159,6 +159,9 @@ class Artist
     }
 
     public function serializer(){
+        if($this->getActif()==0){
+            return null;
+        }
         return [
             "fullname" => $this->getFullname(),
             "description" => $this->getDescription(),

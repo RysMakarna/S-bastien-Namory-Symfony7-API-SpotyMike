@@ -20,7 +20,7 @@ class TokenService
         $this->jwtProvider = $jwtProvider;
         $this->userRepository = $userRepository;
     }
-    public function checkToken(Request $request)
+    public function checkToken(Request $request,$token=null)
     {
         if ($request->headers->has('Authorization')) {
             $data = explode(" ", $request->headers->get('Authorization'));
@@ -35,16 +35,12 @@ class TokenService
                 } catch (\Throwable $th) {
                     return false;
                 }
-            }else{
-                
             }
-        }elseif($request){
-            //dd($request);
-            $token = $request->get("token"); // recupération du token
+        }elseif($token){
             $dataToken = $this->jwtProvider->load($token);
             if( $dataToken->isVerified()) {
                 $user = $this->userRepository->findOneBy(["email" => $dataToken->getPayload()["email"]]);
-                    return ($user) ? $user : false;
+                return ($user) ? $user : false;
             }
             return false;
         }
