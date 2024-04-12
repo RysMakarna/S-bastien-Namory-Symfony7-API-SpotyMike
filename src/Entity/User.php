@@ -248,7 +248,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             "lastname" => $this->getLastname(),
             "email" => $this->getEmail(),
             "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
-            "Artist.createAt" => $this->getCreateAt()->format('Y-m-d'),
+            "Artist.createdAt" => $this->getCreateAt()->format('Y-m-d'),
         ];
     }
     public function UserSerialRegis()
@@ -263,7 +263,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             "createAt" => $this->getCreateAt()->format('d-m-Y'),
         ];
     }
-    public function UserSeriaLogin($artist)
+    public function UserSeriaLogin()
     {
         $sexe = $this->getSexe() === '0' ? 'Homme' : ($this->getSexe() === '1' ? 'Femme' : ($this->getSexe() === '2' ? 'Non-Binaire': null));
 
@@ -273,9 +273,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             "email" => $this->getEmail(),
             "tel" => $this->getTel(),
             "sexe" => $sexe,
-            "artist"=> $artist?$artist->serializer() :null,
+            "artist"=> $this->getArtist() ? $this->getArtist()->serializer() : null,
             "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
-            "createAt" => $this->getCreateAt()->format('Y-m-d'),
+            "createdAt" => $this->getCreateAt()->format('Y-m-d'),
             "updateAt" => $this->getUpdateAt()->format('Y-m-d'),
         ];
     }

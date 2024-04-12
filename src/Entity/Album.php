@@ -173,12 +173,13 @@ class Album
 
         return $this;
     }
-    public function serializer($children = false){
+    public function serializer(){
         return [
             "id" => $this->getId(),  
             "nom" => $this->getNom(),
             "categ" => $this->getCateg(),
             "cover"=> $this->getCover(),
+            "song"=>$this->getSongIdSong()?$this->getSongIdSong():[],
             "year" => $this->getYear(),
             "createAt" => $this->getCreateAt()->format('d-m-Y'),
         ];

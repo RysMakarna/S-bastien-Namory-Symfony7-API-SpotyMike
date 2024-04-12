@@ -86,14 +86,12 @@ class LoginController extends AbstractController
                     return $this->sendErrorMessage408(true);
                 }
                 $this->ResetNumberTentative($user);
-                $id = $user->getId();
-                $artist = $this->repositoryArtist->findOneBySomeField($id);
                 //$this->repository->findOneBySomeField($id);
                 return $this->json([
                     'error' => false,
                     'message'=>'l\'utilisateur à été authentifié avec succès',
                     'user' => [
-                        $user->UserSeriaLogin( $artist )
+                        $user->UserSeriaLogin()
                     ],
                 // Assurez-vous que la méthode serialize() retourne les données au format attendu.  
                     'token' => $this->JWTManager->create($user),
