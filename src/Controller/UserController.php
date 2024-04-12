@@ -5,13 +5,13 @@ namespace App\Controller;
 
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use PhpParser\Builder\Class_;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWSProvider\JWSProviderInterface;
-
 class UserController extends AbstractController
 {
     private $entityManager;
@@ -41,7 +41,7 @@ class UserController extends AbstractController
         ], 204);
 
     }
-
+  
     #[Route('/user', name: 'app_update_user', methods: ['POST'])]
     public function update(Request $request): JsonResponse
     {
@@ -65,16 +65,29 @@ class UserController extends AbstractController
 
         $otherUser = $repository->findOneBy(["tel" => $request->get('tel')]);
         if ($currentUser->getEmail() != $otherUser->getEmail()){
-            return $this->json([
-                'error'=> true,
-                "message"=>"Conflit de données. Le numéro est déjà utilisé par un autre utilisateur.",
-                ],409);
+          return $this->json([
+            'error'=> true,
+            "message"=>"Conflit de données. Le numéro est déjà utilisé par un autre utilisateur.",
+          ], 409);
         }
         $sexe = $request->get('sexe') === '0' ? 0 : ($request->get('sexe') === '1' ? 1 : ($request->get('sexe') === '2' ? 2 : null));
         if ($sexe === null) {
             return $this->sendErrorMessage400(2);
         }
-        
+        if(!preg_match($email_validation_regex,$email)){
+            return $this->json([
+            'error'=>true,
+            'message'=> 'Le format de l \'email est invalide.Veuillez entrer un email valide'
+            ],400);
+        }
+        //verifier si l'utilisateur à un email
+        $current_user =$this->entityManager->getRepository(User::class)->findOneBy(['email'=> $email]);
+        if($current_user == null){
+            return $this->json([
+                'error'=>true,
+                'message'=> 'Aucun compte  n\'est associé à cet email.Veuillez  vérifier et réssayer'
+            ],403);
+        }
         if(!preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $request->get('firstname')) || !preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $request->get('lastname'))){
             return $this->sendErrorMessage400(3);
         }
@@ -89,9 +102,59 @@ class UserController extends AbstractController
                     'error' => false,
                     'message' => "Votre inscription a bien été prise en compte.",
                 ], 201);
+        }
+    #[Route('/password-lost', name: 'app_read_user')]
+    public function PasswordLost(Request $request,JWTTokenManagerInterface $jwtManager): JsonResponse
+    {
+        $email_validation_regex = '/^\\S+@\\S+\\.\\S+$/';
+        $email = $request->get('email');
+
+        if(empty($email)){
+            return $this->json([
+                'error'=>true,
+                'message'=> 'L\email manquant.Veuillez fornir votre mail pour la récupération du mot de passe.'
+            ],400);
+        }
+      
+        }
+        $cache = new FilesystemAdapter();
+        $cacheKey = 'reset_password_' . urlencode($email);
+        $nbTentative = $cache->getItem($cacheKey);
+        $allTentative = $nbTentative->get() ?? 0;
+ 
+        $nbTentative->set($allTentative + 1);
+        $nbTentative->expiresAfter(300); // 5minutes
+        $cache->save($nbTentative);
+        
+        if($allTentative >= 3){
+            return $this->json([
+                'message' => 'Trop de demande de réinitialisation de mot de passe.Veuillez attendre avant de réessayer dans 5 minutes',
+            ], 429);
+        }
+        $token = $this->tokenVerifier->generateToken($email,time()+120);//Génération du token 
+        return $this->json([
+            'success'=>true,
+            'message' => 'Un email de réinitialisation de mot de passe à été envoyé à votre adresse email.Veuillez suivre les instructions contenues dans l\'email pour réinitialiser votre mot de passe.',
+            'token'=> $token,  
+        ], 200);
     }
 
-
+    #[Route('/update/user/{id}', name: 'app_update_user', methods: ['PUT'])]
+    public function update(int $id, Request $request): JsonResponse
+    {
+        /*$user = $this->entityManager->getRepository(User::class)->find($id);
+        if (!$user) {
+            return $this->json([
+                'message' => 'Aucune compte avec ce id à modifier !',
+            ], 444);
+        }
+        $user->setEmail($request->get('email'));
+        $user->setTel($request->get('tel'));
+        $this->entityManager->flush();*/
+        return $this->json([
+            'message' => 'modifier avec succès',
+        ], 200);
+    }
     #[Route('/delete/user/{id}', name: 'app_delete_user', methods: ['delete'])]
     public function delete(int $id): JsonResponse
     {
