@@ -25,9 +25,7 @@ class LoginController extends AbstractController
         $this->JWTManager = $jwtManager;
         $this->entityManager = $entityManager;
         $this->repository = $entityManager->getRepository(User::class);
-
         $this->repositoryArtist = $entityManager->getRepository(Artist::class);
-        $this->JWTManager = $JWTManager;
 
     }
     // pointless but need to test something
@@ -95,10 +93,10 @@ class LoginController extends AbstractController
                     'error' => false,
                     'message'=>'l\'utilisateur à été authentifié avec succès',
                     'user' => [
-                        $user->UserSerialRegis( $artist )
+                        $user->UserSeriaLogin( $artist )
                     ],
                 // Assurez-vous que la méthode serialize() retourne les données au format attendu.  
-                    'token' => $this->JWTManager->create($user)
+                    'token' => $this->JWTManager->create($user),
                 ], 200);
 
             } else {
