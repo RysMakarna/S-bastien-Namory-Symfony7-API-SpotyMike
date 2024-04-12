@@ -4,6 +4,7 @@ namespace App\Controller;
 
 
 use App\Entity\User;
+use App\Entity\Artist;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpParser\Builder\Class_;
 use Symfony\Component\HttpFoundation\Request;
@@ -139,37 +140,43 @@ class UserController extends AbstractController
         ], 200);
     }
 
-    #[Route('/update/user/{id}', name: 'app_update_user', methods: ['PUT'])]
-    public function update(int $id, Request $request): JsonResponse
-    {
-        /*$user = $this->entityManager->getRepository(User::class)->find($id);
-        if (!$user) {
-            return $this->json([
-                'message' => 'Aucune compte avec ce id à modifier !',
-            ], 444);
+    #[Route('/account-deactivation', name: 'app_delete_user', methods: ['delete'])]
+    public function delete($request): JsonResponse
+    {   
+        $repository = $this->entityManager->getRepository(Artist::class);
+        $currentUser = $this->tokenVerifier->checkToken($request);
+        if (gettype($currentUser) == 'boolean') {
+            return $this->json($this->tokenVerifier->sendJsonErrorToken());
         }
-        $user->setEmail($request->get('email'));
-        $user->setTel($request->get('tel'));
-        $this->entityManager->flush();*/
-        return $this->json([
-            'message' => 'modifier avec succès',
-        ], 200);
-    }
-    #[Route('/delete/user/{id}', name: 'app_delete_user', methods: ['delete'])]
-    public function delete(int $id): JsonResponse
-    {
-        $user = $this->entityManager->getRepository(User::class)->find($id);
-        if (!$user) {
-            return $this->json([
-                'message' => 'Aucune compte avec ce id à modifier !',
-            ], 444);
-        }
-        $this->entityManager->remove($user);
-        $this->entityManager->flush();
 
+        if($currentUser->getActif() === 0){
+            return $this->json([
+                "error"=>true,
+                "message"=>"Le compte est déjà désactivé.",
+            ], 409);
+        }
+
+        $currentUser->setActif(0);
+        $artist=$repository->findOneBy(["User_idUser" => $currentUser->idUser]);
+        if ($artist){
+            $artist->setActif(0);
+            foreach($artist->getAlbums() as $album){
+                $album->setActif(0);
+                $this->entityManager->persist($album);
+                foreach($album->getSongIdSong() as $song){
+                    $song->setActif(0);
+                    $this->entityManager->persist($song);
+                }
+            }
+        }
+
+        $this->entityManager->persist($currentUser);
+        $this->entityManager->flush();
         return $this->json([
-            'message' => 'Utisateur supprimer avec succès!',
+            'error' => false,
+            'message' => "Votre compte a été désactivé avec succès. Nous sommes désolé de vous voir partir.",
         ], 200);
+
     }
 
     private function sendErrorMessage400(int $errorCode){

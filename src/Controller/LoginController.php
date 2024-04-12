@@ -66,7 +66,7 @@ class LoginController extends AbstractController
         if ($user) {
             $currentTime = new \DateTime();
             $UpdateDate = $user->getUpdateAt();
-            if ($user->isActif() == 1) {
+            if ($user->getActif() == 0 || $user->getActif() == 2) {
                 if ($user->getnbTentative() >= 5) { // verifie le temps
                     if( $UpdateDate->diff($currentTime)->i < 1){
                         return $this->json([
