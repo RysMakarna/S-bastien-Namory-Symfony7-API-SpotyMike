@@ -138,6 +138,7 @@ class UserController extends AbstractController
             'token'=> $token,  
         ], 200);
     }
+  
     #[Route('/account-deactivation', name: 'app_delete_user', methods: ['DELETE'])]
     public function delete(Request $request): JsonResponse
     {   

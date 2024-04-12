@@ -36,6 +36,9 @@ class Artist
     private Collection $albums;
     private ?User $user = null;
 
+    #[ORM\OneToMany(targetEntity: ArtistHasLabel::class, mappedBy: 'User_idUser')]
+    private Collection $artistHasLabels;
+
     public function __construct()
     {
         $this->songs = new ArrayCollection();
