@@ -108,38 +108,60 @@ class ArtistController extends AbstractController
         if (gettype($currentUser) == 'boolean') {
             return $this->json($this->tokenVerifier->sendJsonErrorToken());
         }
-        $artist = $urepository->findOneBy(["User_idUser" => $currentUser->getIdUser()]);
+        $artist = $urepository->findOneBy(["User_idUser" => $currentUser->getId()]);
         if ($artist) {
-            if ($artist->getActif() === 0){
+            if ($artist->getActif() === 0) {
                 return $this->json([
-                    "error"=>true,
-                    "message"=>"VOus n'êtes pas autorisé à accéder aux informations de cet artiste.",
-                    ],403);
+                    "error" => true,
+                    "message" => "VOus n'êtes pas autorisé à accéder aux informations de cet artiste.",
+                ], 403);
             }
 
-            $otherArtist = $urepository->findOneBy(["fullname" => $request->get("fullname")]);
-            if($artist->getUserIdUser() != $otherArtist->getUserIdUser()){
-                return $this->json([
-                    "error"=>true,
-                    "message"=>"Le nom d'artiste est déjà utilisé. Veuillez choisir un autre nom.",
-                    ],409);
+            if ($request->get('fullname')) {
+                $otherArtist = $urepository->findOneBy(["fullname" => $request->get("fullname")]);
+                if ($artist->getUserIdUser() != $otherArtist->getUserIdUser()) {
+                    return $this->json([
+                        "error" => true,
+                        "message" => "Le nom d'artiste est déjà utilisé. Veuillez choisir un autre nom.",
+                    ], 409);
+                }
+                if (!preg_match("'/^[a-zA-ZÀ-ÿ\-]+$/'", $request->get('fullname'))) {
+                    return $this->sendError400();
+                }
+                $artist->setFullname($request->get('fullname'));
+                $this->entityManager->persist($artist);
             }
-            $newLabel = $this->entityManager->getRepository(Label::class)->findOneBy(['id_label' => $request->get('id_label')]);
-            if (!$newLabel){
-                return sendError400();
+            if ($request->get("description")) {
+                if (!preg_match("'/^[a-zA-ZÀ-ÿ\-]+$/'", $request->get('description'))) {
+                    return $this->sendError400();
+                }
+
+                $artist->setDescription($request->get('description'));
+                $this->entityManager->persist($artist);
             }
-            
 
-            $labelOfArtist = new ArtistHasLabel();
-            $labelOfArtist->setIdLabel($request->get('id_label'));
-            $labelOfArtist->setIdArtist($artist->getId());
-            $labelOfArtist->setAddedAt(new \DateTimeImmutable());
-            $labelOfArtist->setQuittedAt(new \DateTime());
+            if ($request->get('id_label')) {
+                $Label = $this->entityManager->getRepository(Label::class)->findOneBy(['id_label' => $request->get('id_label')]);
+                if (!$Label) {
+                    return $this->sendError400();
+                }
+                $oldLabel = $this->entityManager->getRepository(ArtistHasLabel::class)->findOneBy(['id_User' => $artist->getUserIdUser(), 'quittedAt' => null]);
+                $oldLabel->setQuittedAt(new DateTime());
+                $this->entityManager->persist($oldLabel);
 
-            $this->entityManager->persist($labelOfArtist);
+                $newLabelOfArtist = new ArtistHasLabel();
+                $newLabelOfArtist->setIdLabel($request->get('id_label'));
+                $newLabelOfArtist->setIdArtist($artist->getId());
+                $newLabelOfArtist->setAddedAt(new \DateTimeImmutable());
+
+                $this->entityManager->persist($newLabelOfArtist);
+            }
+
             $this->entityManager->flush();
-            
-
+            return $this->json([
+                "succes" => false,
+                "message" => "Les informations de l'artiste ont été mises à jour avec succès."
+            ], 200);
 
         } else {
             if (empty($request->get('id_label')) || empty($request->get('fullname'))) {
@@ -198,8 +220,9 @@ class ArtistController extends AbstractController
             $artistId = $this->entityManager->getRepository(Artist::class)->findOneBySomeField($currentUser->getId());
 
             $labelOfArtist = new ArtistHasLabel();
-            $labelOfArtist->setIdLabel($request->get('id_label'));
-            $labelOfArtist->setIdArtist($artistId->getId());
+            $labelOfArtist->setIdLabel($label);
+            $labelOfArtist->setIdArtist($artistId);
+            $labelOfArtist->setAddedAt(new \DateTimeImmutable());
             $this->entityManager->persist($labelOfArtist);
             $this->entityManager->flush();
 
@@ -209,6 +232,14 @@ class ArtistController extends AbstractController
                 'artist_id' => $artistId->getId(), // Supposant que l'ID de l'artiste est 1, ajustez selon la logique appropriée
             ], 200); // Utilisez 200 pour indiquer le succès
         }
+    }
+
+    private function sendError400()
+    {
+        return $this->json([
+            "error" => true,
+            "message" => "Les paramètres fournis sont invalides. Veuillez vérifier les données soumises.",
+        ], 400);
     }
 
 }

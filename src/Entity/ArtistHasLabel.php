@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Repository\ArtistHasLabelRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\DBAL\Types\Types;
+
 
 #[ORM\Entity(repositoryClass: ArtistHasLabelRepository::class)]
 class ArtistHasLabel
@@ -20,6 +22,12 @@ class ArtistHasLabel
     #[ORM\ManyToOne(inversedBy: 'artistHasLabels')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Artist $idArtist = null;
+
+    #[ORM\Column]
+    private ?\DateTimeImmutable $addedAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $quittedAt = null;
 
     public function getId(): ?int
     {
@@ -46,6 +54,30 @@ class ArtistHasLabel
     public function setIdArtist(?Artist $idArtist): static
     {
         $this->idArtist = $idArtist;
+
+        return $this;
+    }
+
+    public function getAddedAt(): ?\DateTimeImmutable
+    {
+        return $this->addedAt;
+    }
+
+    public function setAddedAt(\DateTimeImmutable $addedAt): static
+    {
+        $this->addedAt = $addedAt;
+
+        return $this;
+    }
+
+    public function getUQuittedAt(): ?\DateTimeInterface
+    {
+        return $this->quittedAt;
+    }
+
+    public function setQuittedAt(\DateTimeInterface $quittedAt): static
+    {
+        $this->quittedAt = $quittedAt;
 
         return $this;
     }
