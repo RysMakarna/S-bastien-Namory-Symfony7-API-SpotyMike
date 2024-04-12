@@ -41,19 +41,39 @@ class UserController extends AbstractController
         ], 204);
 
     }
-    #[Route('/password-lost', name: 'app_read_user')]
-    public function DeleteAcount(Request $request,JWTTokenManagerInterface $jwtManager): JsonResponse
+  
+    #[Route('/user', name: 'app_update_user', methods: ['POST'])]
+    public function update(Request $request): JsonResponse
     {
-        $email_validation_regex = '/^\\S+@\\S+\\.\\S+$/';
-        $email = $request->get('email');
+        $currentUser = $this->tokenVerifier->checkToken($request);
+        if (gettype($currentUser) == 'boolean') {
+            return $this->json($this->tokenVerifier->sendJsonErrorToken());
+        }
+        $repository = $this->entityManager->getRepository(User::class);
+        
 
-        if(empty($email)){
+        if(!$request->get('firstname') || !$request->get('lastname') || !$request->get('tel') || $request->get('sexe') === null){
             return $this->json([
-                'error'=>true,
-                'message'=> 'L\email manquant.Veuillez fornir votre mail pour la récupération du mot de passe.'
-            ],400);
+                "error"=> true,
+                "message"=> "Erreur de validation des données.",
+            ], 422);
+        }
+        
+        if(!preg_match('^0[1-7][0-9]{8}$^', $request->get('tel'))){
+            return $this->sendErrorMessage400(1);
         }
 
+        $otherUser = $repository->findOneBy(["tel" => $request->get('tel')]);
+        if ($currentUser->getEmail() != $otherUser->getEmail()){
+          return $this->json([
+            'error'=> true,
+            "message"=>"Conflit de données. Le numéro est déjà utilisé par un autre utilisateur.",
+          ], 409);
+        }
+        $sexe = $request->get('sexe') === '0' ? 0 : ($request->get('sexe') === '1' ? 1 : ($request->get('sexe') === '2' ? 2 : null));
+        if ($sexe === null) {
+            return $this->sendErrorMessage400(2);
+        }
         if(!preg_match($email_validation_regex,$email)){
             return $this->json([
             'error'=>true,
@@ -67,6 +87,35 @@ class UserController extends AbstractController
                 'error'=>true,
                 'message'=> 'Aucun compte  n\'est associé à cet email.Veuillez  vérifier et réssayer'
             ],403);
+        }
+        if(!preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $request->get('firstname')) || !preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $request->get('lastname'))){
+            return $this->sendErrorMessage400(3);
+        }
+        $currentUser->setFirstname($request->get('firstname'));
+        $currentUser->setLastname($request->get('lastname'));
+        $currentUser->setTel($request->get('tel'));
+        $currentUser->setSexe($sexe);
+
+        $this->entityManager->persist($currentUser);
+                $this->entityManager->flush();
+                return $this->json([
+                    'error' => false,
+                    'message' => "Votre inscription a bien été prise en compte.",
+                ], 201);
+        }
+    #[Route('/password-lost', name: 'app_read_user')]
+    public function PasswordLost(Request $request,JWTTokenManagerInterface $jwtManager): JsonResponse
+    {
+        $email_validation_regex = '/^\\S+@\\S+\\.\\S+$/';
+        $email = $request->get('email');
+
+        if(empty($email)){
+            return $this->json([
+                'error'=>true,
+                'message'=> 'L\email manquant.Veuillez fornir votre mail pour la récupération du mot de passe.'
+            ],400);
+        }
+      
         }
         $cache = new FilesystemAdapter();
         $cacheKey = 'reset_password_' . urlencode($email);
@@ -124,7 +173,23 @@ class UserController extends AbstractController
     }
 
     private function sendErrorMessage400(int $errorCode){
-
+        switch($errorCode){
+            case 1:
+                return $this->json([
+                    "error" => true,
+                    "message" => "Le format du numéro de téléphone est invalide",
+                ], 400);
+            case 2:
+                return $this->json([
+                    "error"=> true,
+                    "message"=> "La valeur du champ sexe est invalide. Les valeurs autorisées sont 0 pour Femme, 1 pour Homme, 2 pour Non-Binaire",
+                ], 400);
+            case 3:
+                return $this->json([
+                    "error" => true,
+                    "message" => "Les données fournies sont invalides ou incomplètes",
+                ], 400);
+        } 
     }
 
 }

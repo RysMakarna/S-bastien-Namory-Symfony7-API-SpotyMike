@@ -55,7 +55,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?Artist $artist = null;
 
     #[ORM\Column]
-    private ?bool $actif = null;
+    private ?int $actif = 1;
 
     #[ORM\Column]
     private ?int $reset_password = 0;
@@ -242,17 +242,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
     public function Serializer()
     {
-        $dateOfBirth = $this->getBirthday();
-
-        // Formater la date de naissance au format 'd-m-Y' si elle est disponible
-
         return [
             "idUser" => $this->getIdUser(),
             "firstname" => $this->getFirstname(),
             "lastname" => $this->getLastname(),
             "email" => $this->getEmail(),
             "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
-            "Artist.createAt" => $this->getCreateAt()->format('d-m-Y'),
+            "Artist.createAt" => $this->getCreateAt()->format('Y-m-d'),
         ];
     }
     public function UserSerialRegis()
@@ -269,19 +265,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
     public function UserSeriaLogin($artist)
     {
+        $sexe = $this->getSexe() === 0 ? 'Homme' : ($this->getSexe() === 1 ? 'Femme' : ($this->getSexe() === 2 ? 'Non-Binaire': null));
+
         return [
             "firstname" => $this->getFirstname(),
             "lastname" => $this->getLastname(),
             "email" => $this->getEmail(),
             "tel" => $this->getTel(),
-            "sexe" => $this->getSexe(),
-            "artist"=>$artist ?$artist->serializer() :null,
+            "sexe" => $sexe,
             "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
-            "createAt" => $this->getCreateAt()->format('d-m-Y'),
+            "createAt" => $this->getCreateAt()->format('Y-m-d'),
+            "updateAt" => $this->getUpdateAt()->format('Y-m-d'),
         ];
     }
     public function UserSerial()
     {
+        $sexe = $this->getSexe() === 0 ? 'Homme' : ($this->getSexe() === 1 ? 'Femme' : ($this->getSexe() === 2 ? 'Non-Binaire': null));
+
         return [
             "firstname" => $this->getFirstname(),
             "lastname" => $this->getLastname(),
@@ -289,7 +289,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             "tel" => $this->getTel(),
             "sexe" => $this->getSexe(),
             "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
-            "createAt" => $this->getCreateAt()->format('d-m-Y'),
+            "createAt" => $this->getCreateAt()->format('Y-m-d'),
         ];
     }
 
