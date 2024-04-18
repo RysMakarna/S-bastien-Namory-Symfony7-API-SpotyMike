@@ -143,10 +143,13 @@ class LoginController extends AbstractController
             !$request->get('lastname') || !$DiG) {
             return $this->sendErrorMessage400(4);
         }
+        if (!preg_match('^/^[a-zA-Z -]+$/^', $request->get('firstname')) || !preg_match('^/^[a-zA-Z -]+$/^', $request->get('firstname')) ) {
+            return $this->sendErrorMessage400(11);
+        }
         if (!preg_match('^\S+@\S+\.\S+$^', $request->get('email'))) {
             return $this->sendErrorMessage400(5);
         }
-        if (!preg_match('/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,20}$/', $request->get('password'))){
+        if (!preg_match('^/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,20}$/^', $request->get('password'))){
             return $this->sendErrorMessage400(6);
         }
         if (!$dateBirth){
@@ -249,6 +252,11 @@ class LoginController extends AbstractController
                     "error"=>true,
                     "message"=>'La valeur du champ sexe est invalide. Les valeurs autorisées sont 0 pour Femme, 1 pour Homme, 2 pour Non-Binaire',
                     ],400);
+            case 11:
+                return $this->json([
+                    "error"=>true,
+                    "message"=> "",
+                ], 400);
             default:
 
         }

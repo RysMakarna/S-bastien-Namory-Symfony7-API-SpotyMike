@@ -52,7 +52,10 @@ class UserController extends AbstractController
             return $this->json($this->tokenVerifier->sendJsonErrorToken());
         }
         $repository = $this->entityManager->getRepository(User::class);
-        
+
+        parse_str($request->getContent(), $arrayDecode);
+
+        $this->verifyKeys($arrayDecode) == true ? true : $this->sendErrorMessage400(3);
 
         if(!$request->get('firstname') || !$request->get('lastname') || !$request->get('tel') || $request->get('sexe') === null){
             return $this->json([
@@ -76,7 +79,7 @@ class UserController extends AbstractController
         if ($sexe === null) {
             return $this->sendErrorMessage400(2);
         }
-        if(!preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $request->get('firstname')) || !preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $request->get('lastname'))){
+        if(!preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $request->get('firstname')) && $request->get('firstname')->count() < 60 || !preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $request->get('lastname')) && $request->get('lastname')->count() < 60){
             return $this->sendErrorMessage400(3);
         }
         $currentUser->setFirstname($request->get('firstname'));
@@ -176,6 +179,18 @@ class UserController extends AbstractController
             'message' => "Votre compte a été désactivé avec succès. Nous sommes désolé de vous voir partir.",
         ], 200);
 
+    }
+
+    private function verifyKeys($requestBody){
+        $allowedKeys = ['firstname', 'lastname', 'tel', 'sexe'];
+        $keys = array_keys($requestBody);
+
+        foreach($keys as $key){
+            if (!in_array($key, $allowedKeys)){
+                return false;
+            }
+        }
+        return true;
     }
 
     private function sendErrorMessage400(int $errorCode){
