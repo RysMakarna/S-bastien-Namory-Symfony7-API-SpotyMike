@@ -53,38 +53,39 @@ class UserController extends AbstractController
         }
         $repository = $this->entityManager->getRepository(User::class);
 
-        parse_str($request->getContent(), $arrayDecode);
+        parse_str($request->getContent(), $userData);
 
-        $this->verifyKeys($arrayDecode) == true ? true : $this->sendErrorMessage400(3);
+        $this->verifyKeys($userData) == true ? true : $this->sendErrorMessage400(3);
 
-        if(!$request->get('firstname') || !$request->get('lastname') || !$request->get('tel') || $request->get('sexe') === null){
+        if(preg_match('^/^[a-zA-Z -]+.{1,60}$/^', $userData['firstname']) || strlen($userData['firstname']) >=60 
+         || preg_match('^/^[a-zA-Z -]+.{1,60}$/^', $userData['lastname']) || strlen($userData['lastname']) >=60){
             return $this->json([
                 "error"=> true,
                 "message"=> "Erreur de validation des données.",
             ], 422);
         }
         
-        if(!preg_match('^0[1-7][0-9]{8}$^', $request->get('tel'))){
+        if(!preg_match('^0[1-7][0-9]{8}$^', $userData['tel'])){
             return $this->sendErrorMessage400(1);
         }
 
-        $otherUser = $repository->findOneBy(["tel" => $request->get('tel')]);
+        $otherUser = $repository->findOneBy(["tel" => $userData['tel']]);
         if ($otherUser && $currentUser->getEmail() != $otherUser->getEmail()){
           return $this->json([
             'error'=> true,
             "message"=>"Conflit de données. Le numéro est déjà utilisé par un autre utilisateur.",
           ], 409);
         }
-        $sexe = $request->get('sexe') === '0' ? 0 : ($request->get('sexe') === '1' ? 1 : ($request->get('sexe') === '2' ? 2 : null));
-        if ($sexe === null) {
-            return $this->sendErrorMessage400(2);
+        if ($userData['sexe'] !== null){
+            $sexe = $userData['sexe'] === '0' ? 0 : ($userData['sexe'] === '1' ? 1 : ($userData['sexe'] === '2' ? 2 : null));
+            if ($sexe === null) {
+                return $this->sendErrorMessage400(2);
+            }
         }
-        if(!preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $request->get('firstname')) && $request->get('firstname')->count() < 60 || !preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $request->get('lastname')) && $request->get('lastname')->count() < 60){
-            return $this->sendErrorMessage400(3);
-        }
-        $currentUser->setFirstname($request->get('firstname'));
-        $currentUser->setLastname($request->get('lastname'));
-        $currentUser->setTel($request->get('tel'));
+
+        $currentUser->setFirstname($userData['firstname']);
+        $currentUser->setLastname($userData['lastname']);
+        $currentUser->setTel($userData['tel']);
         $currentUser->setSexe($sexe);
 
         $this->entityManager->persist($currentUser);

@@ -253,7 +253,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
     public function UserSerialRegis()
     {
-        $sexe = $this->getSexe() === '0' ? 'Homme' : ($this->getSexe() === '1' ? 'Femme' : ($this->getSexe() === '2' ? 'Non-Binaire': null));
+        $sexe = $this->getSexe() === '0' ? 'Homme' : ($this->getSexe() === '1' ? 'Femme' : null);
 
         return [
             "firstname" => $this->getFirstname(),
@@ -267,7 +267,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
     public function UserSeriaLogin()
     {
-        $sexe = $this->getSexe() === '0' ? 'Homme' : ($this->getSexe() === '1' ? 'Femme' : ($this->getSexe() === '2' ? 'Non-Binaire': null));
+        $sexe = $this->getSexe() === '0' ? 'Homme' : ($this->getSexe() === '1' ? 'Femme' : null);
 
         return [
             "firstname" => $this->getFirstname(),
@@ -283,7 +283,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
     public function UserSerial()
     {
-        $sexe = $this->getSexe() === 0 ? 'Homme' : ($this->getSexe() === 1 ? 'Femme' : ($this->getSexe() === 2 ? 'Non-Binaire': null));
+        $sexe = $this->getSexe() === 0 ? 'Homme' : ($this->getSexe() === 1 ? 'Femme' : null);
 
         return [
             "firstname" => $this->getFirstname(),

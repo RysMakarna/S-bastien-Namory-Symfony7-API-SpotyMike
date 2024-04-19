@@ -124,12 +124,17 @@ class LoginController extends AbstractController
   
     public function AddUser(Request $request, UserPasswordHasherInterface $passwordHash): JsonResponse
     {
-        $email = $request->get('email');
+
+        parse_str($request->getContent(), $userData);
+
+        $this->verifyKeys($userData) == true ? true : $this->sendErrorMessage400(4);
+
+        $email = $userData['email'];
         $existingUser = $this->repository->findOneBy(['email' => $email]);
 
-        $dateBirth = \DateTime::createFromFormat('d/m/Y', $request->get('dateBirth'));
+        $dateBirth = \DateTime::createFromFormat('d/m/Y', $userData['dateBirth']);
         if ($dateBirth){
-            $DiG = $dateBirth->format('d/m/Y') === $request->get('dateBirth'); // DiG means Date is Good
+            $DiG = $dateBirth->format('d/m/Y') === $userData['dateBirth']; // DiG means Date is Good
         }
 
         
@@ -139,29 +144,26 @@ class LoginController extends AbstractController
                 "message" => 'Cet email est déjà utilisé par un autre compte',
             ], 409);
         }
-        if (!$request->get('email') || !$request->get('password') || !$request->get('firstname') || 
-            !$request->get('lastname') || !$DiG) {
-            return $this->sendErrorMessage400(4);
-        }
-        if (!preg_match('^/^[a-zA-Z -]+$/^', $request->get('firstname')) || !preg_match('^/^[a-zA-Z -]+$/^', $request->get('firstname')) ) {
+        if (!preg_match('^/^[a-zA-Z -]+.{1,60}$/^', $userData['firstname']) || strlen($userData['firstname']) >=60 
+        || !preg_match('^/^[a-zA-Z -]+.{1,60}$/^', $userData['lastname']) || strlen($userData['lastname']) >=60) {
             return $this->sendErrorMessage400(11);
         }
-        if (!preg_match('^\S+@\S+\.\S+$^', $request->get('email'))) {
+        if (!preg_match('^\S+@\S+\.\S+$^', $userData['email'])) {
             return $this->sendErrorMessage400(5);
         }
-        if (!preg_match('^/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,20}$/^', $request->get('password'))){
+        if (!preg_match('^/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,20}$/^', $userData['password'])){
             return $this->sendErrorMessage400(6);
         }
-        if (!$dateBirth){
+        if (!$DiG){
             return $this->sendErrorMessage400(7);
         }
-        if ($request->get('tel')){
-            if(!preg_match('^0[1-7][0-9]{8}$^', $request->get('tel'))){ //Find why need '' on POSTMAN
+        if ($userData['tel']){
+            if(!preg_match('^0[1-7][0-9]{8}$^', $userData['tel'])){ //Find why need '' on POSTMAN
                 return $this->sendErrorMessage400(9);
             }
         }
-        if ($request->get('sexe')){
-            $sexe = $request->get('sexe') === '0' ? 0 : ($request->get('sexe') === '1' ? 1 : ($request->get('sexe') === '2' ? 2 : null));
+        if ($userData['sexe'] !== null){
+            $sexe = $userData['sexe'] === '0' ? 0 : ($userData['sexe'] === '1' ? 1 : null);
             if ($sexe === null) {
                 return $this->sendErrorMessage400(10);
             }
@@ -182,21 +184,20 @@ class LoginController extends AbstractController
                 $user->setIdUser("User_".rand(0,999)); // Will be Modified. Logic to not have twice or more the same ID.
                 # Add Obligatory Values
                 $user->setEmail($email);
-                $user->setFirstname($request->get('firstname'));
-                $user->setLastname($request->get('lastname'));
+                $user->setFirstname($userData['firstname']);
+                $user->setLastname($userData['lastname']);
                 $birthday = $dateBirth;
                 $user->setBirthday($birthday);
                 # Verify Sex and Tel
                 if ($sexe){
                     $user->setSexe($sexe);
                 }
-                if ($request->get('tel')){            
-                    $tel = $request->get('tel') ? $request->get('tel') : NULL;
-                    $user->setTel($tel);
+                if ($userData['tel']){            
+                    $user->setTel($userData['tel']);
                 }
                 # Encrypt and Save Password
                 //$encrypte = password_hash($request->get('encrypte'), PASSWORD_DEFAULT);
-                $password = $request->get('password');
+                $password = $userData['password'];
 
                 $hash = $passwordHash->hashPassword($user, $password);
                 $user->setPassword($hash);
@@ -213,6 +214,26 @@ class LoginController extends AbstractController
                     'message' => "L'utilisateur a bien été créé avec succès.",
                     'user' => $user->UserSerialRegis(),
                 ], 201);
+    }
+
+    private function verifyKeys($requestBody){
+        $obligatoryKeys = ['firstname', 'lastname', 'email', 'password', 'dateBirth'];
+        $allowedKeys = ['tel', 'sexe'];
+        $keys = array_keys($requestBody);
+        $resultGood = 0;
+        foreach($keys as $key){
+            if (in_array($key, $obligatoryKeys)){
+                $resultGood++;
+            } elseif (in_array($key, $allowedKeys)){
+                $resultGood++;
+            } else {
+                $resultGood = 0;
+            }
+        }
+        if ($resultGood < 5){
+            return false;
+        }
+        return true;
     }
 
     private function sendErrorMessage400(int $codeMessage){
