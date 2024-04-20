@@ -6,6 +6,10 @@ use App\Entity\Artist;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Entity\Album;
+use App\Entity\ArtistHasLabel;
+use App\Entity\Label;
+use Doctrine\ORM\Query\Expr\Join;
 
 /**
  * @extends ServiceEntityRepository<Artist>
@@ -54,5 +58,60 @@ class ArtistRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+    public function findAllWithPagination($page, $limit)
+    {
+        $entityManager = $this->getEntityManager();
+        $qb = $entityManager->createQueryBuilder();
+    
+        $qb->select('ar','l.name')
+            ->from(Artist::class, 'ar')
+            ->leftJoin(Album::class,'a',join::WITH,'a.artist_User_idUser =ar.id')
+            ->leftJoin(ArtistHasLabel::class,'ahl',join::WITH,'ahl.idArtist =ar.id')
+            ->leftJoin(Label::class,'l',join::WITH,'l.id = ahl.id_label')
+            ->where( 
+                $qb->expr()->orX(
+                    $qb->expr()->between(
+                        'a.createAt',
+                        'ahl.addedAt',
+                        $qb->expr()->literal('COALESCE(ahl.quittedAt, CURRENT_TIMESTAMP())')
+                    ),
+                    $qb->expr()->isNull('l.name'),
+                    $qb->expr()->isNotNull('l.name')
+                )
+                );
+    
+            
+        // Pagination
+        $qb->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+    
+        return $qb->getQuery()->getResult();
+    }
+    
+    public function countArtist()
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->select('count(a.id)');
+        return $qb->getQuery()       // Convert the QueryBuilder instance into a Query object
+            ->getSingleScalarResult();
+    }
+    public function findAlbumAndLabelNames(Artist $a)
+    {
+        $entityManager = $this->getEntityManager();
+        $qb = $entityManager->createQueryBuilder();
+
+        $qb->select('a', 'label.name as labelName')
+            ->from(Album::class, 'a')
+            ->leftJoin('a.artist_user_id_user_id', 'lAl')
+            ->leftJoin('lAl.label', 'label')
+            ->where($qb->expr()->orX(
+                $qb->expr()->between('a.create_at', 'lAl.added_at', 'COALESCE(lAl.quitted_at, CURRENT_TIMESTAMP())'),
+                $qb->expr()->isNull('label.name')
+            )
+            );
+
+        return $qb->getQuery()->getResult();
+    }
+
 
 }

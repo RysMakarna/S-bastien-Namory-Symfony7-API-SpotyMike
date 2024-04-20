@@ -173,13 +173,20 @@ class Album
 
         return $this;
     }
-    public function serializer(){
+    public function serializer($name)
+    {
+        $songs = $this->getSongIdSong();
+        $serializedSongs = [];
+        foreach ($songs as $song) {
+            $serializedSongs[] = $song->SerializerUser();
+        }
         return [
-            "id" => $this->getId(),  
+            "id" => $this->getId(),
             "nom" => $this->getNom(),
             "categ" => $this->getCateg(),
-            "cover"=> $this->getCover(),
-            "song"=>$this->getSongIdSong()?$this->getSongIdSong():[],
+            "cover" => $this->getCover(),
+            "label"=> $name,
+            "song" => $songs = null ? [] : $serializedSongs,
             "year" => $this->getYear(),
             "createAt" => $this->getCreateAt()->format('d-m-Y'),
         ];

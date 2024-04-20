@@ -6,9 +6,11 @@ use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWSProvider\JWSProviderInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use function Symfony\Component\Clock\now;
 
-class TokenService
+class TokenService extends AbstractController
 {
     private $jwtManager;
     private $jwtProvider;
@@ -50,12 +52,12 @@ class TokenService
     public function generateToken(string $email, int $exp){
         return $this->jwtProvider->create(["email" => $email, "exp" => $exp,"iat"=>time()])->getToken();
     }
-    public function sendJsonErrorToken(): array
+    public function sendJsonErrorToken(): JsonResponse
     {
-        return [
+        return $this->json([
             'error' => true,
-            'message' => "Authentification requise. Vous devez être connecté pour effectuer cette action.",
-        ];
+            'message' => "Authentification requise. Vous devez être connecté pour effectuer cette action."
+        ],401);
     }
 }
 

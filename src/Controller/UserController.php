@@ -49,7 +49,7 @@ class UserController extends AbstractController
         $currentUser = $this->tokenVerifier->checkToken($request);
 
         if (gettype($currentUser) == 'boolean') {
-            return $this->json($this->tokenVerifier->sendJsonErrorToken());
+            return $this->tokenVerifier->sendJsonErrorToken();
         }
         $repository = $this->entityManager->getRepository(User::class);
         
@@ -145,7 +145,7 @@ class UserController extends AbstractController
         $repository = $this->entityManager->getRepository(Artist::class);
         $currentUser = $this->tokenVerifier->checkToken($request);
         if (gettype($currentUser) == 'boolean') {
-            return $this->json($this->tokenVerifier->sendJsonErrorToken());
+            return $this->tokenVerifier->sendJsonErrorToken();
         }
 
         if($currentUser->getActif() === 0){

@@ -199,7 +199,6 @@ class Song
             "id"=> $this->getId(),
             "cover"=>$this->getCover(),
             "title"=>$this->getTitle(),
-            "visibility"=>$this->isVisibility(),
             "createAt"=>$this->getCreateAt()->format('d-m-Y'),
         ];
     }
