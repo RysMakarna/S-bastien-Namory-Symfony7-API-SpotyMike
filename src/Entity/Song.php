@@ -31,6 +31,9 @@ class Song
     private ?bool $visibility = true;
 
     #[ORM\Column]
+    private ?int $actif = 1;
+
+    #[ORM\Column]
     private ?\DateTimeImmutable $createAt = null;
 
     #[ORM\ManyToMany(targetEntity: Artist::class, inversedBy: 'songs')]
@@ -112,6 +115,16 @@ class Song
         return $this;
     }
 
+    public function getActif(): ?int
+    {
+        return $this->actif;
+    }
+
+    public function setActif(?int $actif): static
+    {
+        return $this;
+    }
+
     public function getCreateAt(): ?\DateTimeImmutable
     {
         return $this->createAt;
@@ -171,11 +184,22 @@ class Song
 
         return $this;
     }
-    public function AllSong()
+    public function Serializer()
     {
         return[
+            "id"=> $this->getId(),
             "cover"=>$this->getCover(),
             "title"=>$this->getTitle(),
+            "createAt"=>$this->getCreateAt()->format('d-m-Y'),
+        ];
+    }
+    public function SerializerUser()
+    {
+        return[
+            "id"=> $this->getId(),
+            "cover"=>$this->getCover(),
+            "title"=>$this->getTitle(),
+            "createAt"=>$this->getCreateAt()->format('d-m-Y'),
         ];
     }
 }

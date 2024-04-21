@@ -26,6 +26,11 @@ class Album
 
     #[ORM\Column(length: 125)]
     private ?string $cover = null;
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createAt = null;
+
+    #[ORM\Column]
+    private ?int $actif = 1;
 
     #[ORM\Column]
     private ?int $year = 2024;
@@ -133,6 +138,13 @@ class Album
     {
         $this->updateAt = $updateAt;
 
+    public function getActif(): ?int
+    {
+        return $this->actif;
+    }
+
+    public function setActif(?int $actif): static
+    {
         return $this;
     }
 
@@ -144,6 +156,17 @@ class Album
     public function setArtistUserIdUser(?Artist $artist_User_idUser): static
     {
         $this->artist_User_idUser = $artist_User_idUser;
+
+        return $this;
+    }
+    public function getCreateAt(): ?\DateTimeImmutable
+    {
+        return $this->createAt;
+    }
+
+    public function setCreateAt(\DateTimeImmutable $createAt): static
+    {
+        $this->createAt = $createAt;
 
         return $this;
     }
@@ -177,4 +200,23 @@ class Album
 
         return $this;
     }
+    public function serializer($name)
+    {
+        $songs = $this->getSongIdSong();
+        $serializedSongs = [];
+        foreach ($songs as $song) {
+            $serializedSongs[] = $song->SerializerUser();
+        }
+        return [
+            "id" => $this->getId(),
+            "nom" => $this->getNom(),
+            "categ" => $this->getCateg(),
+            "cover" => $this->getCover(),
+            "label"=> $name,
+            "song" => $songs = null ? [] : $serializedSongs,
+            "year" => $this->getYear(),
+            "createAt" => $this->getCreateAt()->format('d-m-Y'),
+        ];
+    }
+
 }
