@@ -6,6 +6,7 @@ use App\Repository\AlbumRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: AlbumRepository::class)]
 class Album
@@ -27,9 +28,6 @@ class Album
     #[ORM\Column(length: 125)]
     private ?string $cover = null;
     #[ORM\Column]
-    private ?\DateTimeImmutable $createAt = null;
-
-    #[ORM\Column]
     private ?int $actif = 1;
 
     #[ORM\Column]
@@ -38,14 +36,14 @@ class Album
     #[ORM\Column]
     private ?\DateTimeImmutable $createAt = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $updateAt = null;
-
     #[ORM\ManyToOne(inversedBy: 'albums', cascade: ['remove'])]
     private ?Artist $artist_User_idUser = null;
 
     #[ORM\OneToMany(targetEntity: Song::class, mappedBy: 'album')]
     private Collection $song_idSong;
+
+    #[ORM\Column]
+    private ?bool $visibility = true;
 
     public function __construct()
     {
@@ -116,28 +114,6 @@ class Album
 
         return $this;
     }
-
-    public function getCreateAt(): ?\DateTimeImmutable
-    {
-        return $this->createAt;
-    }
-
-    public function setCreateAt(\DateTimeImmutable $createAt): static
-    {
-        $this->createAt = $createAt;
-
-        return $this;
-    }
-
-    public function getUpdateAt(): ?\DateTimeInterface
-    {
-        return $this->updateAt;
-    }
-
-    public function setUpdateAt(\DateTimeInterface $updateAt): static
-    {
-        $this->updateAt = $updateAt;
-
     public function getActif(): ?int
     {
         return $this->actif;
@@ -217,6 +193,18 @@ class Album
             "year" => $this->getYear(),
             "createAt" => $this->getCreateAt()->format('d-m-Y'),
         ];
+    }
+
+    public function isVisibility(): ?bool
+    {
+        return $this->visibility;
+    }
+
+    public function setVisibility(bool $visibility): static
+    {
+        $this->visibility = $visibility;
+
+        return $this;
     }
 
 }

@@ -68,7 +68,7 @@ class AlbumController extends AbstractController
         $albumCover = $request->get('cover') ? $request->get('cover') : "default_cover";
         $album->setCover($albumCover);
         $album->setCreateAt(new \DateTimeImmutable());
-        $album->setUpdateAt(new \DateTime());
+        //$album->setUpdateAt(new \DateTime()); on n'a pas besoin de update 
         $this->entityManager->persist($album);
 
         foreach($request->get('songs') as $newSong){

@@ -53,6 +53,7 @@ class ArtistController extends AbstractController
         }
         //dd($allArtists);
         $serializedArtists = [];
+        //dd($allArtists);
         foreach ($allArtists as $artist) {
             for( $i = 0; $i < count($artist)-1; $i++ ){
                 //dd($artist);

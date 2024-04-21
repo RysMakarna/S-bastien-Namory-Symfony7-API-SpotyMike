@@ -213,16 +213,6 @@ class Artist
             "description" => $this->getDescription(),
         ];
     }
-    
-
-    public function serializerUser(){
-        return [
-            "idUser" => ($children) ? $this->getUserIdUser() : null,
-            "fistname" => $this->getUserIdUser()->getFirstName(),
-            "lastanme" => $this->getUserIdUser()->getLastname(),
-        ];
-    }
-
     public function serializerInformation($name){
         // Vérifier si l'objet est actif
     if ($this->getActif() == 0) {
