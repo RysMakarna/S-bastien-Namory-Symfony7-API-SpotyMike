@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UserRepository;
@@ -57,11 +59,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $actif = 1;
 
-    #[ORM\Column]
-    private ?int $reset_password = 0;
+    /**
+     * @var Collection<int, Artist>
+     */
+    #[ORM\ManyToMany(targetEntity: Artist::class, inversedBy: 'follower')]
+    private Collection $following;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $dateRest = null;
+    public function __construct()
+    {
+        $this->following = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -227,17 +235,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return (string) $this->email;
     }
+    public function getActif(): ?int
+    {
+        return $this->actif;
+    }
+
+    public function setActif(int $actif): static
+    {
+        $this->actif = $actif;
+
+        return $this;
+    }
     public function UserSerializer()
     {
+        $sexe = $this->getSexe() === "0" ? 'Homme' : ($this->getSexe() === "1" ? 'Femme' : ($this->getSexe() === "2" ? 'Non-Binaire': null));
         return [
             "firstname" => $this->getFirstname(),
             "lastname" => $this->getLastname(),
             "email" => $this->getEmail(),
             "tel" => $this->getTel(),
-            "sexe" => $this->getSexe(),
-            "artist" => $this->getArtist() ? $this->getArtist()->serializer() : [],
-            "dateBirth" => $this->getBirthday(), // Will need to be in format('d-m-Y'),
-            "createAt" => $this->getCreateAt(),
+            "sexe" => $sexe,
+            "ALbum" => $this->getArtist() ? $this->getArtist()->serializerInformation() : [],
+            "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
+            "Artist.createdAt" => $this->getCreateAt()->format('d-m-Y'),
         ];
     }
     public function Serializer()
@@ -265,7 +285,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
     public function UserSeriaLogin()
     {
-        $sexe = $this->getSexe() === '0' ? 'Homme' : ($this->getSexe() === '1' ? 'Femme' : ($this->getSexe() === '2' ? 'Non-Binaire': null));
+        $sexe = $this->getSexe() === "0" ? 'Homme' : ($this->getSexe() === "1" ? 'Femme' : ($this->getSexe() === "2" ? 'Non-Binaire': null));
 
         return [
             "firstname" => $this->getFirstname(),
@@ -294,38 +314,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         ];
     }
 
-    public function getActif(): ?int
+    /**
+     * @return Collection<int, Artist>
+     */
+    public function getFollowing(): Collection
     {
-        return $this->actif;
+        return $this->following;
     }
 
-    public function setActif(int $actif): static
+    public function addFollowing(Artist $following): static
     {
-        $this->actif = $actif;
+        if (!$this->following->contains($following)) {
+            $this->following->add($following);
+        }
 
         return $this;
     }
 
-    public function getResetPassword(): ?int
+    public function removeFollowing(Artist $following): static
     {
-        return $this->reset_password;
-    }
-
-    public function setResetPassword(?int $reset_password): static
-    {
-        $this->reset_password = $reset_password;
-
-        return $this;
-    }
-
-    public function getDateRest(): ?\DateTimeInterface
-    {
-        return $this->dateRest;
-    }
-
-    public function setDateRest(?\DateTimeInterface $dateRest): static
-    {
-        $this->dateRest = $dateRest;
+        $this->following->removeElement($following);
 
         return $this;
     }
