@@ -15,12 +15,12 @@ class Artist
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
-
+    
     #[ORM\OneToOne(inversedBy: 'artist', cascade: ['remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $User_idUser = null;
 
-    #[ORM\Column(length: 90)]
+    #[ORM\Column(length: 90,unique:true)]
     private ?string $fullname = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -56,7 +56,6 @@ class Artist
         $this->albums = new ArrayCollection();
         $this->follower = new ArrayCollection();
     }
-
     public function getId(): ?int
     {
         return $this->id;
@@ -65,7 +64,6 @@ class Artist
     {
         return $this->user;
     }
-
     public function getUserIdUser(): ?User
     {
         return $this->User_idUser;
@@ -219,10 +217,9 @@ class Artist
 
     public function serializerUser(){
         return [
+            "idUser" => ($children) ? $this->getUserIdUser() : null,
             "fistname" => $this->getUserIdUser()->getFirstName(),
             "lastanme" => $this->getUserIdUser()->getLastname(),
-            "fullname" => $this->getFullname(),
-            "description" => $this->getDescription(),
         ];
     }
 

@@ -35,7 +35,13 @@ class Album
     #[ORM\Column]
     private ?int $year = 2024;
 
-    #[ORM\ManyToOne(inversedBy: 'albums')]
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $updateAt = null;
+
+    #[ORM\ManyToOne(inversedBy: 'albums', cascade: ['remove'])]
     private ?Artist $artist_User_idUser = null;
 
     #[ORM\OneToMany(targetEntity: Song::class, mappedBy: 'album')]
@@ -110,6 +116,27 @@ class Album
 
         return $this;
     }
+
+    public function getCreateAt(): ?\DateTimeImmutable
+    {
+        return $this->createAt;
+    }
+
+    public function setCreateAt(\DateTimeImmutable $createAt): static
+    {
+        $this->createAt = $createAt;
+
+        return $this;
+    }
+
+    public function getUpdateAt(): ?\DateTimeInterface
+    {
+        return $this->updateAt;
+    }
+
+    public function setUpdateAt(\DateTimeInterface $updateAt): static
+    {
+        $this->updateAt = $updateAt;
 
     public function getActif(): ?int
     {
