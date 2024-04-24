@@ -282,7 +282,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             "artist"=> $this->getArtist() ? $this->getArtist()->serializer() : null,
             "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
             "createdAt" => $this->getCreateAt()->format('Y-m-d'),
-            "updateAt" => $this->getUpdateAt()->format('Y-m-d'),
         ];
     }
     public function UserSerial()

@@ -36,7 +36,7 @@ class ArtistController extends AbstractController
         if(!is_numeric($currentPage) || $currentPage < 0) {
             return $this->json([
                 'error'=>true,
-                'message'=>"Le paramètre de pagination est invalide.Veuillez fournir un numéro de page valide"
+                'message'=>"Le paramètre de pagination est invalide.Veuillez fournir un numéro de page valide."
             ],400);
         }
         $serializedArtists = [];
@@ -48,7 +48,7 @@ class ArtistController extends AbstractController
         if($currentPage > $totalPages) {
             return $this->json([
                 'error'=>true,
-                'message'=> "Aucun artiste trouvé pour la page demandée"
+                'message'=> "Aucun artiste trouvé pour la page demandée."
             ],404);
         }
         //dd($allArtists);
@@ -60,16 +60,6 @@ class ArtistController extends AbstractController
                 array_push($serializedArtists, $artist[$i]->ArtistSerealizer($artist["name"]));
             }
         }
-        //dd($serializedArtists);
-        /*
-        if(){
-            return $this->json([
-                'error'=>true,
-                'message'=> 'Aucun artiste trouvé pour la page demandée'
-
-            ],404);
-        }*/
-
         return $this->json([
             'error' => false,
             'artist' => $serializedArtists,
