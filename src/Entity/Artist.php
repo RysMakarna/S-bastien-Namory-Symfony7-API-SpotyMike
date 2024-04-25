@@ -15,12 +15,12 @@ class Artist
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
-
+    
     #[ORM\OneToOne(inversedBy: 'artist', cascade: ['remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $User_idUser = null;
 
-    #[ORM\Column(length: 90)]
+    #[ORM\Column(length: 90,unique:true)]
     private ?string $fullname = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -38,13 +38,24 @@ class Artist
 
     #[ORM\OneToMany(targetEntity: ArtistHasLabel::class, mappedBy: 'User_idUser')]
     private Collection $artistHasLabels;
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createAt = null;
+    
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $updateAt = null;
+
+    /**
+     * @var Collection<int, User>
+     */
+    #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'following')]
+    private Collection $follower;
 
     public function __construct()
     {
         $this->songs = new ArrayCollection();
         $this->albums = new ArrayCollection();
+        $this->follower = new ArrayCollection();
     }
-
     public function getId(): ?int
     {
         return $this->id;
@@ -53,7 +64,6 @@ class Artist
     {
         return $this->user;
     }
-
     public function getUserIdUser(): ?User
     {
         return $this->User_idUser;
@@ -118,6 +128,28 @@ class Artist
 
         return $this;
     }
+    public function getUpdateAt(): ?\DateTimeInterface
+    {
+        return $this->updateAt;
+    }
+
+    public function setUpdateAt(\DateTimeInterface $updateAt): static
+    {
+        $this->updateAt = $updateAt;
+
+        return $this;
+    }
+    public function getCreateAt(): ?\DateTimeImmutable
+    {
+        return $this->createAt;
+    }
+
+    public function setCreateAt(\DateTimeImmutable $createAt): static
+    {
+        $this->createAt = $createAt;
+
+        return $this;
+    }
 
     public function removeSong(Song $song): static
     {
@@ -157,7 +189,21 @@ class Artist
 
         return $this;
     }
+    public function ArtistSerealizer($name)
+    {
+        $sexe = $this->getUserIdUser()->getSexe() === "0" ? 'Homme' : ($this->getUserIdUser()->getSexe() === "1" ? 'Femme' : ($this->getUserIdUser()->getSexe() === "2" ? 'Non-Binaire': null));
 
+        return [
+            "firstname" =>  $this->getUserIdUser()->getFirstName(),
+            "lastname" => $this->getUserIdUser()->getLastname(),
+            "email" => $this->getUserIdUser()->getEmail(),
+            "tel" => $this->getUserIdUser()->getTel(),
+            "sexe" => $sexe,
+            "dateBirth" => $this->getUserIdUser()->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
+            "Artist.createdAt" => $this->getCreateAt()->format('Y-m-d'),
+            "Albums"=>$this->serializerInformation($name),
+        ];
+    }
     public function serializer(){
         if($this->getActif()==0){
             return null;
@@ -166,5 +212,70 @@ class Artist
             "fullname" => $this->getFullname(),
             "description" => $this->getDescription(),
         ];
+    }
+    public function serializerInformation($name){
+        // Vérifier si l'objet est actif
+    if ($this->getActif() == 0) {
+        return null;
+    }
+    $albums = $this->getAlbums();
+    if ($albums === null) {
+        return [];
+    }
+    $serializedAlbums = [];
+    foreach ($albums as $album) {
+        $serializedAlbums[] = $album->serializer($name);
+    }
+    
+
+    return $serializedAlbums;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getFollower(): Collection
+    {
+        return $this->follower;
+    }
+    public function addArtistHasLabel(ArtistHasLabel $artistHasLabel): static
+    {
+        if (!$this->artistHasLabels->contains($artistHasLabel)) {
+            $this->artistHasLabels->add($artistHasLabel);
+            $artistHasLabel->setIdArtist($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArtistHasLabel(ArtistHasLabel $artistHasLabel): static
+    {
+        if ($this->artistHasLabels->removeElement($artistHasLabel)) {
+            // set the owning side to null (unless already changed)
+            if ($artistHasLabel->getIdArtist() === $this) {
+                $artistHasLabel->setIdArtist(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addFollower(User $follower): static
+    {
+        if (!$this->follower->contains($follower)) {
+            $this->follower->add($follower);
+            $follower->addFollowing($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFollower(User $follower): static
+    {
+        if ($this->follower->removeElement($follower)) {
+            $follower->removeFollowing($this);
+        }
+
+        return $this;
     }
 }

@@ -25,18 +25,61 @@ class ArtistController extends AbstractController
         $this->entityManager = $entityManager;
         $this->tokenVerifier = $tokenService;
     }
-    #[Route('/artist', name: 'app_artist_all', methods: 'GET')]
+    #[Route('/artist', name: 'artist_get', methods: 'GET')]
     public function read(Request $request): JsonResponse
     {
         $currentUser = $this->tokenVerifier->checkToken($request, null);
         if (gettype($currentUser) == 'boolean') {
-            return $this->json($this->tokenVerifier->sendJsonErrorToken());
+            return $this->tokenVerifier->sendJsonErrorToken();
         }
-        return $this->json([
-            'error' => true,
-            'artist' => $currentUser->UserSerializer()
-        ], 409);
+        $currentPage = $request->get('currentPage');
+        if(!is_numeric($currentPage) || $currentPage < 0) {
+            return $this->json([
+                'error'=>true,
+                'message'=>"Le paramètre de pagination est invalide.Veuillez fournir un numéro de page valide"
+            ],400);
+        }
+        $serializedArtists = [];
+        $page = $request->query->getInt('page', $currentPage);
+        $limit = $request->query->getInt('limit', 5);
+        $totalArtist = $this->entityManager->getRepository(Artist::class)->countArtist();
+        $totalPages = ceil($totalArtist/$limit);
+        $allArtists = $this->entityManager->getRepository(Artist::class)->findAllWithPagination($page, $limit); // tous les informations de l'artiste..
+        if($currentPage > $totalPages) {
+            return $this->json([
+                'error'=>true,
+                'message'=> "Aucun artiste trouvé pour la page demandée"
+            ],404);
+        }
+        //dd($allArtists);
+        $serializedArtists = [];
+        //dd($allArtists);
+        foreach ($allArtists as $artist) {
+            for( $i = 0; $i < count($artist)-1; $i++ ){
+                //dd($artist);
+                array_push($serializedArtists, $artist[$i]->ArtistSerealizer($artist["name"]));
+            }
+        }
+        //dd($serializedArtists);
+        /*
+        if(){
+            return $this->json([
+                'error'=>true,
+                'message'=> 'Aucun artiste trouvé pour la page demandée'
 
+            ],404);
+        }*/
+
+        return $this->json([
+            'error' => false,
+            'artist' => $serializedArtists,
+            'message'=>'Informations des artistes récupérées avec succès',
+            'pagination'=>[
+                'currentPage'=>$page,
+                'totalPages'=>$totalPages,
+                'totalArtists'=> $totalArtist,
+            ],
+        ], 200);
     }
 
     #[Route('/artist', name: 'app_artist', methods: 'POST')]
@@ -46,7 +89,7 @@ class ArtistController extends AbstractController
         $currentUser = $this->tokenVerifier->checkToken($request, null);
         $urepository = $this->entityManager->getRepository(Artist::class);
         if (gettype($currentUser) == 'boolean') {
-            return $this->json($this->tokenVerifier->sendJsonErrorToken());
+            return $this->tokenVerifier->sendJsonErrorToken();
         }
         $artist = $urepository->findOneBy(["User_idUser" => $currentUser->getId()]);
         if ($artist) {

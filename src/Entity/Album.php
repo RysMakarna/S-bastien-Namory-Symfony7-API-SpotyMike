@@ -6,6 +6,7 @@ use App\Repository\AlbumRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: AlbumRepository::class)]
 class Album
@@ -27,19 +28,22 @@ class Album
     #[ORM\Column(length: 125)]
     private ?string $cover = null;
     #[ORM\Column]
-    private ?\DateTimeImmutable $createAt = null;
-
-    #[ORM\Column]
     private ?int $actif = 1;
 
     #[ORM\Column]
     private ?int $year = 2024;
 
-    #[ORM\ManyToOne(inversedBy: 'albums')]
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createAt = null;
+
+    #[ORM\ManyToOne(inversedBy: 'albums', cascade: ['remove'])]
     private ?Artist $artist_User_idUser = null;
 
     #[ORM\OneToMany(targetEntity: Song::class, mappedBy: 'album')]
     private Collection $song_idSong;
+
+    #[ORM\Column]
+    private ?bool $visibility = true;
 
     public function __construct()
     {
@@ -110,7 +114,6 @@ class Album
 
         return $this;
     }
-
     public function getActif(): ?int
     {
         return $this->actif;
@@ -173,16 +176,35 @@ class Album
 
         return $this;
     }
-    public function serializer(){
+    public function serializer($name)
+    {
+        $songs = $this->getSongIdSong();
+        $serializedSongs = [];
+        foreach ($songs as $song) {
+            $serializedSongs[] = $song->SerializerUser();
+        }
         return [
-            "id" => $this->getId(),  
+            "id" => $this->getId(),
             "nom" => $this->getNom(),
             "categ" => $this->getCateg(),
-            "cover"=> $this->getCover(),
-            "song"=>$this->getSongIdSong()?$this->getSongIdSong():[],
+            "cover" => $this->getCover(),
+            "label"=> $name,
+            "song" => $songs = null ? [] : $serializedSongs,
             "year" => $this->getYear(),
             "createAt" => $this->getCreateAt()->format('d-m-Y'),
         ];
+    }
+
+    public function isVisibility(): ?bool
+    {
+        return $this->visibility;
+    }
+
+    public function setVisibility(bool $visibility): static
+    {
+        $this->visibility = $visibility;
+
+        return $this;
     }
 
 }
