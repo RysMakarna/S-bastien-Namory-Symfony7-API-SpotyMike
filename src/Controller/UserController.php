@@ -5,13 +5,13 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Entity\Artist;
-use Doctrine\ORM\EntityManagerInterface;
 use PhpParser\Builder\Class_;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 class UserController extends AbstractController
 {
@@ -176,7 +176,7 @@ class UserController extends AbstractController
         $this->entityManager->persist($currentUser);
         $this->entityManager->flush();
         return $this->json([
-            'error' => false,
+            'success' => true,
             'message' => "Votre compte a été désactivé avec succès. Nous sommes désolé de vous voir partir.",
         ], 200);
 
@@ -213,5 +213,4 @@ class UserController extends AbstractController
                 ], 400);
         } 
     }
-
 }
