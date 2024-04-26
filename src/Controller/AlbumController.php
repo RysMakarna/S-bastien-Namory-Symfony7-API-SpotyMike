@@ -41,7 +41,7 @@ class AlbumController extends AbstractController
         if (gettype($currentUser) == 'boolean') {
             return $this->json($this->tokenVerifier->sendJsonErrorToken());
         }
-        $artist = $urepository->findOneBy(["User_idUser" => $currentUser->getId()]);
+        $artist = $urepository->findOneBy(["User_idUser" => $currentUser->getIdUser()]);
         if ($artist->getActif() === 0) return $this->json([
             "error"=>true,
             "message"=>"Vous n'avez pas l'autorisation pou accéder à cet album.",

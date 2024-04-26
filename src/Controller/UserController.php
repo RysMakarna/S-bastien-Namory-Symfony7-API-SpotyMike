@@ -163,7 +163,7 @@ class UserController extends AbstractController
         $artist=$repository->findOneBy(["User_idUser" => $currentUser->getIdUser()]);
         if ($artist){
             $artist->setActif(0);
-            foreach($artist->getAlbums() as $album){
+            foreach($artist->getAlbum() as $album){
                 $album->setActif(0);
                 $this->entityManager->persist($album);
                 foreach($album->getSongIdSong() as $song){

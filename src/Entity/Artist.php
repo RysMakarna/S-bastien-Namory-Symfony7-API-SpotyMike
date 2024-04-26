@@ -13,7 +13,8 @@ class Artist
 {
     #[ORM\Id]
     #[ORM\OneToOne(inversedBy: 'artist', cascade: ['remove'])]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(name: 'artistId', referencedColumnName: 'idUser', nullable: false)]
+    
     //#[ORM\OneToMany(targetEntity: Album::class, mappedBy: 'artist_IdUser')]
     private ?User $User_idUser = null;
 
@@ -30,7 +31,7 @@ class Artist
     private Collection $songs;
     private ?User $user = null;
 
-    #[ORM\OneToMany(targetEntity: ArtistHasLabel::class, mappedBy: 'User_idUser')]
+    #[ORM\OneToMany(targetEntity: ArtistHasLabel::class, mappedBy: 'idArtist',)]
     private Collection $artistHasLabels;
     #[ORM\Column]
     private ?\DateTimeImmutable $createAt = null;
@@ -223,6 +224,21 @@ class Artist
         if ($this->follower->removeElement($follower)) {
             $follower->removeFollowing($this);
         }
+
+        return $this;
+    }
+    public function getAlbum(): Collection
+    {
+        return $this->album;
+    }
+
+    public function addAlbum(Album $album): static
+    {
+        if ($album->getArtistIdUser() !== $this) {
+            $album->getArtistIdUser($this);
+        }
+
+        $this->album = $album;
 
         return $this;
     }

@@ -91,7 +91,7 @@ class ArtistController extends AbstractController
         if (gettype($currentUser) == 'boolean') {
             return $this->tokenVerifier->sendJsonErrorToken();
         }
-        $artist = $urepository->findOneBy(["User_idUser" => $currentUser->getId()]);
+        $artist = $urepository->findOneBy(["User_idUser" => $currentUser->getIdUser()]);
         if ($artist) {
             parse_str($request->getContent(), $artistData);
 
@@ -162,7 +162,7 @@ class ArtistController extends AbstractController
 
                 $newLabelOfArtist = new ArtistHasLabel();
                 $newLabelOfArtist->setIdLabel($request->get('id_label'));
-                $newLabelOfArtist->setIdArtist($artist->getId());
+                $newLabelOfArtist->setIdArtist($artist->getUserIdUser());
                 $newLabelOfArtist->setAddedAt(new \DateTimeImmutable());
 
                 $this->entityManager->persist($newLabelOfArtist);
@@ -248,7 +248,7 @@ class ArtistController extends AbstractController
 
             $this->entityManager->persist($newArtist);
             $this->entityManager->flush();
-            $artistId = $this->entityManager->getRepository(Artist::class)->findOneBySomeField($currentUser->getId());
+            $artistId = $this->entityManager->getRepository(Artist::class)->findOneBySomeField($currentUser->getIdUser());
 
             $labelOfArtist = new ArtistHasLabel();
             $labelOfArtist->setIdLabel($artistData["label"]);
@@ -260,7 +260,7 @@ class ArtistController extends AbstractController
             return $this->json([
                 "success" => true,
                 'message' => "Votre compte d'artiste a été créé avec succès. Bienvenue dans notre communauté d'artiste!",
-                'artist_id' => $artistId->getId(), // Supposant que l'ID de l'artiste est 1, ajustez selon la logique appropriée
+                'artist_id' => $artistId->getUserIdUser(), // Supposant que l'ID de l'artiste est 1, ajustez selon la logique appropriée
             ], 201); // Utilisez 200 pour indiquer le succès
         }
     }

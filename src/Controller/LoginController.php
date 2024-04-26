@@ -181,7 +181,7 @@ class LoginController extends AbstractController
         }
                 $user = new User();
                 # ID
-                $user->setIdUser("User_".rand(0,999)); // Will be Modified. Logic to not have twice or more the same ID.
+                $user->setIdUser(uniqid()); // Will be Modified. Logic to not have twice or more the same ID.
                 # Add Obligatory Values
                 $user->setEmail($email);
                 $user->setFirstname($userData['firstname']);

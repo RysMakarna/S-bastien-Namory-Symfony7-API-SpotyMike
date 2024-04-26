@@ -16,11 +16,11 @@ class ArtistHasLabel
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'artistHasLabels')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(referencedColumnName: 'id_label', nullable: false)]
     private ?Label $id_label = null;
 
     #[ORM\ManyToOne(inversedBy: 'artistHasLabels')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(referencedColumnName: 'artistId', nullable: false)]
     private ?Artist $idArtist = null;
 
     #[ORM\Column]

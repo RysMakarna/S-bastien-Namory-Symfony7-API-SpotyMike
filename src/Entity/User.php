@@ -15,7 +15,7 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
-    #[ORM\Column(length: 90, unique: true)]
+    #[ORM\Column(name:'idUser', type:"string", length: 90, unique: true)]
     private ?string $idUser = null;
 
     #[ORM\Column(length: 55)]
@@ -57,6 +57,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, Artist>
      */
     #[ORM\ManyToMany(targetEntity: Artist::class, inversedBy: 'follower')]
+    #[ORM\JoinTable(name: "following")]
+    #[ORM\JoinColumn(name: "idUser", referencedColumnName: "idUser")]
+    #[ORM\InverseJoinColumn(name: "artist_id", referencedColumnName: "artistId")]
     private Collection $following;
 
     public function __construct()
@@ -126,7 +129,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->sexe;
     }
 
-    public function setSexe(string $sexe): static
+    public function setSexe(int $sexe): static
     {
         $this->sexe = $sexe;
 

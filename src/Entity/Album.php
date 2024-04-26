@@ -13,7 +13,7 @@ class Album
 {
 
     #[ORM\Id]
-    #[ORM\Column(length: 90)]
+    #[ORM\Column(name:'idAlbum',type:"string", length: 90)]
     private ?string $idAlbum = null;
 
     #[ORM\Column(length: 90)]
@@ -40,7 +40,7 @@ class Album
     private ?bool $visibility = true;
 
     #[ORM\ManyToOne(inversedBy: 'album')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(name: 'artist_id', referencedColumnName: 'artistId', nullable: false)]
     private ?Artist $Artist_User_idUser = null;
 
 
