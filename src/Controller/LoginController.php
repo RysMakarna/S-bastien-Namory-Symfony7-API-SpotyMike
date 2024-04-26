@@ -58,7 +58,7 @@ class LoginController extends AbstractController
         if (!preg_match($password_pattern, $password) || strlen($password)< 8){
             return $this->json([
                 'error' => true,
-                'message' => 'Le mot de passe doit contenir au moins une majuscule,une minuscule ,un chiffre,une caractère spécial et avoir 8 caractères minimun '
+                'message' => 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et avoir 8 caractères minimun.'
             ], 400);
         }
         // nombre d'erreur ...
@@ -67,11 +67,15 @@ class LoginController extends AbstractController
             $currentTime = new \DateTime();
             $UpdateDate = $user->getUpdateAt();
             if ($user->getActif() == 1) {
-                if ($user->getnbTentative() >= 5) { // verifie le temps
-                    if( $UpdateDate->diff($currentTime)->i < 1){
+                if ($user->getnbTentative() >= 5) {
+                    $diff = $UpdateDate->diff($currentTime);
+                    dd($diff);
+                    $timeLeft = $this->timeLeft($diff);  // verifie le temps
+                    //dd($timeLeft);
+                    if( $timeLeft < '1:00'){
                         return $this->json([
                             'error' => true,
-                            'message' => 'Trop de tentative sur email ' . $user->getEmail() . ' Veuillez patienter 2 minutes'
+                            'message' => 'Trop de tentative sur email ' . $user->getEmail() . " Veuillez patienter ". $timeLeft . " minutes."
                         ], 429);
                     }else{
                         $this->ResetNumberTentative($user);
@@ -89,10 +93,8 @@ class LoginController extends AbstractController
                 //$this->repository->findOneBySomeField($id);
                 return $this->json([
                     'error' => false,
-                    'message'=>'l\'utilisateur à été authentifié avec succès',
-                    'user' => [
-                        $user->UserSeriaLogin()
-                    ],
+                    'message'=>'L\'utilisateur à été authentifié avec succès.',
+                    'user' => $user->UserSeriaLogin(),
                 // Assurez-vous que la méthode serialize() retourne les données au format attendu.  
                     'token' => $this->JWTManager->create($user),
                 ], 200);
@@ -100,7 +102,7 @@ class LoginController extends AbstractController
             } else {
                 return $this->json([
                     'error' => true,
-                    'message' => 'le compte n\'est plus actif  ou suspendu'
+                    'message' => 'Le compte n\'est plus actif ou est suspendu.'
                 ], 403);
             }
 
@@ -111,7 +113,7 @@ class LoginController extends AbstractController
     {
         return $this->json([
             'error' => true,
-            'message' => ($error) ? 'Email/password manquants' : 'Le format de l \'email est invalide'
+            'message' => ($error) ? 'Email/password manquants.' : 'Le format de l\'email est invalide.'
         ], 400);
     }
     public function ResetNumberTentative(User $currentUser){
@@ -141,28 +143,30 @@ class LoginController extends AbstractController
         //dd($request->get('password'));
         if ($existingUser) {
             return $this->json([
-                "message" => 'Cet email est déjà utilisé par un autre compte',
+                "error"=>true,
+                "message" => 'Cet email est déjà utilisé par un autre compte.',
             ], 409);
         }
-        if (!preg_match('^/^[a-zA-Z -]+.{1,60}$/^', $userData['firstname']) || strlen($userData['firstname']) >=60 
-        || !preg_match('^/^[a-zA-Z -]+.{1,60}$/^', $userData['lastname']) || strlen($userData['lastname']) >=60) {
-            return $this->sendErrorMessage400(11);
+        if (!isset($userData['firstname']) || !isset($userData['lastname'])
+        || !preg_match('/^[\p{L} -]{1,60}$/', $userData['firstname'])
+        || !preg_match('/^[\p{L} -]{1,60}$/', $userData['lastname'])) {
+            return $this->sendErrorMessage400(4);
         }
-        if (!preg_match('^\S+@\S+\.\S+$^', $userData['email'])) {
+        if (!isset($userData['email']) || !preg_match('^\S+@\S+\.\S+$^', $userData['email'])) {
             return $this->sendErrorMessage400(5);
         }
-        if (!preg_match('^/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,20}$/^', $userData['password'])){
+        if (!isset($userData['password']) || !preg_match('/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,20}$/', $userData['password']) ){
             return $this->sendErrorMessage400(6);
         }
-        if (!$DiG){
+        if (!isset($DiG) || $DiG === false){
             return $this->sendErrorMessage400(7);
         }
-        if ($userData['tel']){
+        if (isset($userData['tel']) && $userData['tel'] !== null){
             if(!preg_match('^0[1-7][0-9]{8}$^', $userData['tel'])){ //Find why need '' on POSTMAN
                 return $this->sendErrorMessage400(9);
             }
         }
-        if ($userData['sexe'] !== null){
+        if (isset($userData['sexe']) && $userData['sexe'] !== null){
             $sexe = $userData['sexe'] === '0' ? 0 : ($userData['sexe'] === '1' ? 1 : null);
             if ($sexe === null) {
                 return $this->sendErrorMessage400(10);
@@ -173,11 +177,7 @@ class LoginController extends AbstractController
         #Check if User is 12+ YO
         $currentDate = new \DateTime();
         if ($dateBirth->diff($currentDate)->y < 12){
-            return $this->json([
-                'error' => true,
-                'message' =>"L'Âge de l'utilisateur ne permet de s'inscrire.",
-                'diff'=>$dateBirth->diff($currentDate)->y,
-            ], 406);
+            return $this->sendErrorMessage400(11);
         }
                 $user = new User();
                 # ID
@@ -189,10 +189,10 @@ class LoginController extends AbstractController
                 $birthday = $dateBirth;
                 $user->setBirthday($birthday);
                 # Verify Sex and Tel
-                if ($sexe){
+                if (isset($sexe)){
                     $user->setSexe($sexe);
                 }
-                if ($userData['tel']){            
+                if (isset($userData['tel'])){            
                     $user->setTel($userData['tel']);
                 }
                 # Encrypt and Save Password
@@ -241,46 +241,62 @@ class LoginController extends AbstractController
             case 4:
                 return $this->json([
                     "error"=>true,
-                    "message"=>'Des champs obligatoires sont manquants',
+                    "message"=>'Des champs obligatoires sont manquants.',
                     ],400);
             case 5:
                 return $this->json([
                     "error"=>true,
-                    "message"=>'Le format de l\'email est invalide',
+                    "message"=>'Le format de l\'email est invalide.',
                     ],400);
             case 6:
                 return $this->json([
                     "error"=>true,
-                    "message"=>'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère sépcial et avoir 8 caractères minimum',
+                    "message"=>'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère sépcial et avoir 8 caractères minimum.',
                     ],400);
             case 7:
                 return $this->json([
                     "error"=>true,
-                    "message"=>'Le format de la date de naissance est invalide. Le format attendu est JJ/MM/AAAA',
+                    "message"=>'Le format de la date de naissance est invalide. Le format attendu est JJ/MM/AAAA.',
                     ],400);
             case 8:
                 return $this->json([
                     "error"=>true,
-                    "message"=>'L\'utilisateur doit avoir au moins 12 ans',
+                    "message"=>'L\'utilisateur doit avoir au moins 12 ans.',
                     ],400);
             case 9:
                 return $this->json([
                     "error"=>true,
-                    "message"=>'Le format du numéro de téléphone est invalide',
+                    "message"=>'Le format du numéro de téléphone est invalide.',
                     ],400);
             case 10:
                 return $this->json([
                     "error"=>true,
-                    "message"=>'La valeur du champ sexe est invalide. Les valeurs autorisées sont 0 pour Femme, 1 pour Homme, 2 pour Non-Binaire',
+                    "message"=>'La valeur du champ sexe est invalide. Les valeurs autorisées sont 0 pour Femme, 1 pour Homme.',
                     ],400);
             case 11:
                 return $this->json([
-                    "error"=>true,
-                    "message"=> "",
+                    'error' => true,
+                    'message' =>"L'utilisateur doit avoir au moins 12 ans.",
                 ], 400);
             default:
 
         }
+    }
+
+    private function timeLeft(\DateInterval $differance){
+        $timeLeft = $differance->i*60 + $differance->s;
+        $min = floor($timeLeft /60);
+        $sec =$timeLeft % 60;
+
+        $timeString = "";
+        if ($min > 0) {
+            $timeString .= $min . ":";
+        }
+        if ($sec > 0) {
+            $timeString .= $sec;
+        }
+
+        return $timeString;
     }
 }
 
