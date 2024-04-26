@@ -49,9 +49,9 @@ class AlbumController extends AbstractController
 
         parse_str($request->getContent(), $albumData);
 
-        $explodeData = explode(",", $albumData['avatar']);
+        $explodeData = explode(",", $albumData['cover']);
 
-        $this->verifyKeys($albumData, 2) == true ? true : $this->sendError400(1);
+        $this->verifyKeys($albumData, 1) == true ? true : $this->sendError400(1);
 
         
         if (count($explodeData) == 2) {
@@ -112,9 +112,7 @@ class AlbumController extends AbstractController
 
     private function verifyKeys($requestBody, int $obli)
     {
-        switch ($obli) {
-            case 1:
-                $obligatoryKeys = ['visibility', 'cover', "title", "categorie"];;
+        $obligatoryKeys = ['visibility', 'cover', "title", "categorie"];;
                 $keys = array_keys($requestBody);
                 $resultGood = 0;
                 foreach ($keys as $key) {
@@ -124,19 +122,17 @@ class AlbumController extends AbstractController
                         $resultGood = 0;
                     }
                 }
-                if ($resultGood < 2) {
+        switch ($obli) {
+            case 1:
+                if ($resultGood < 4) {
                     return false;
                 }
                 return true;
             case 2:
-                $allowedKeys = ['label', 'fullname', 'description', 'avatar'];
-                $keys = array_keys($requestBody);
-                foreach ($keys as $key) {
-                    if (!in_array($key, $allowedKeys)) {
-                        return false;
-                    }
+                if ($resultGood >= 1) {
+                    return true;
                 }
-                return true;
+                return false;
         }
     }
 

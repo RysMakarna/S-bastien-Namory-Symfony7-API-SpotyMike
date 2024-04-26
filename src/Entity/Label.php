@@ -11,10 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
 class Label
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
-
     #[ORM\Column(length: 20)]
     private ?string $id_label = null;
 

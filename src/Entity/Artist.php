@@ -12,12 +12,9 @@ use Doctrine\ORM\Mapping as ORM;
 class Artist
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
-    
     #[ORM\OneToOne(inversedBy: 'artist', cascade: ['remove'])]
     #[ORM\JoinColumn(nullable: false)]
+    //#[ORM\OneToMany(targetEntity: Album::class, mappedBy: 'artist_IdUser')]
     private ?User $User_idUser = null;
 
     #[ORM\Column(length: 90,unique:true)]
@@ -31,9 +28,6 @@ class Artist
 
     #[ORM\ManyToMany(targetEntity: Song::class, mappedBy: 'Artist_idUser')]
     private Collection $songs;
-
-    #[ORM\OneToMany(targetEntity: Album::class, mappedBy: 'artist_User_idUser')]
-    private Collection $albums;
     private ?User $user = null;
 
     #[ORM\OneToMany(targetEntity: ArtistHasLabel::class, mappedBy: 'User_idUser')]
@@ -49,16 +43,17 @@ class Artist
      */
     #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'following')]
     private Collection $follower;
+    /**
+     * @var Collection<int, Album>
+     */
+    #[ORM\OneToMany(targetEntity: Album::class, mappedBy: 'Artist_User_idUser',  indexBy: 'idAlbum')]
+    private Collection $album;
 
     public function __construct()
     {
         $this->songs = new ArrayCollection();
         $this->albums = new ArrayCollection();
         $this->follower = new ArrayCollection();
-    }
-    public function getId(): ?int
-    {
-        return $this->id;
     }
     public function getUser(): ?User
     {
@@ -159,36 +154,6 @@ class Artist
 
         return $this;
     }
-
-    /**
-     * @return Collection<int, Album>
-     */
-    public function getAlbums(): Collection
-    {
-        return $this->albums;
-    }
-
-    public function addAlbum(Album $album): static
-    {
-        if (!$this->albums->contains($album)) {
-            $this->albums->add($album);
-            $album->setArtistUserIdUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAlbum(Album $album): static
-    {
-        if ($this->albums->removeElement($album)) {
-            // set the owning side to null (unless already changed)
-            if ($album->getArtistUserIdUser() === $this) {
-                $album->setArtistUserIdUser(null);
-            }
-        }
-
-        return $this;
-    }
     public function ArtistSerealizer($name)
     {
         $sexe = $this->getUserIdUser()->getSexe() === "0" ? 'Homme' : ($this->getUserIdUser()->getSexe() === "1" ? 'Femme' : ($this->getUserIdUser()->getSexe() === "2" ? 'Non-Binaire': null));
@@ -201,7 +166,7 @@ class Artist
             "sexe" => $sexe,
             "dateBirth" => $this->getUserIdUser()->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
             "Artist.createdAt" => $this->getCreateAt()->format('Y-m-d'),
-            "Albums"=>$this->serializerInformation($name),
+            //"Albums"=>$this->serializerInformation($name),
         ];
     }
     public function serializer(){
@@ -212,23 +177,6 @@ class Artist
             "fullname" => $this->getFullname(),
             "description" => $this->getDescription(),
         ];
-    }
-    public function serializerInformation($name){
-        // Vérifier si l'objet est actif
-    if ($this->getActif() == 0) {
-        return null;
-    }
-    $albums = $this->getAlbums();
-    if ($albums === null) {
-        return [];
-    }
-    $serializedAlbums = [];
-    foreach ($albums as $album) {
-        $serializedAlbums[] = $album->serializer($name);
-    }
-    
-
-    return $serializedAlbums;
     }
 
     /**
