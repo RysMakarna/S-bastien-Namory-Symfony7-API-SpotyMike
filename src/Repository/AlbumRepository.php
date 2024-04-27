@@ -35,6 +35,17 @@ class AlbumRepository extends ServiceEntityRepository
     //            ->getResult()
     //        ;
     //    }
+    public function allAlbumForCurrentUser($value): array
+    {
+        return $this->createQueryBuilder('a')
+        ->where('a.artist_User_idUser = :value')
+        ->andWhere('a.actif = :active')
+        ->setParameter('value', $value)
+        ->setParameter('active', 1)
+        ->getQuery()
+        ->getResult();
+       
+    }
 
     //    public function findOneBySomeField($value): ?Album
     //    {
