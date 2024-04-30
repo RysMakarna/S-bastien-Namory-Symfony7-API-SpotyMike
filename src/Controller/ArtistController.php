@@ -25,6 +25,7 @@ class ArtistController extends AbstractController
         $this->entityManager = $entityManager;
         $this->tokenVerifier = $tokenService;
     }
+    /*
     #[Route('/artist', name: 'artist_get', methods: 'GET')]
     public function read(Request $request): JsonResponse
     {
@@ -32,11 +33,11 @@ class ArtistController extends AbstractController
         if (gettype($currentUser) == 'boolean') {
             return $this->tokenVerifier->sendJsonErrorToken();
         }
-        $currentPage = $request->get('currentPage');
+        $currentPage = $request->get('currentPage');  
         if(!is_numeric($currentPage) || $currentPage < 0) {
             return $this->json([
                 'error'=>true,
-                'message'=>"Le paramètre de pagination est invalide.Veuillez fournir un numéro de page valide"
+                'message'=>"Le paramètre de pagination est invalide. Veuillez fournir un numéro de page valide."
             ],400);
         }
         $serializedArtists = [];
@@ -48,7 +49,7 @@ class ArtistController extends AbstractController
         if($currentPage > $totalPages) {
             return $this->json([
                 'error'=>true,
-                'message'=> "Aucun artiste trouvé pour la page demandée"
+                'message'=> "Aucun artiste trouvé pour la page demandée."
             ],404);
         }
         //dd($allArtists);
@@ -60,28 +61,100 @@ class ArtistController extends AbstractController
                 array_push($serializedArtists, $artist[$i]->ArtistSerealizer($artist["name"]));
             }
         }
-        //dd($serializedArtists);
-        /*
-        if(){
-            return $this->json([
-                'error'=>true,
-                'message'=> 'Aucun artiste trouvé pour la page demandée'
-
-            ],404);
-        }*/
-
         return $this->json([
             'error' => false,
             'artist' => $serializedArtists,
-            'message'=>'Informations des artistes récupérées avec succès',
+            'message'=>'Informations des artistes récupérées avec succès.',
             'pagination'=>[
                 'currentPage'=>$page,
                 'totalPages'=>$totalPages,
                 'totalArtists'=> $totalArtist,
             ],
         ], 200);
+    }*/
+    #[Route('/artist/{fullname?}', name: 'artist_searh_fullname', methods:['GET'])]
+    public function searchfullname(Request $request,?string $fullname ) :JsonResponse
+    {
+        $currentUser = $this->tokenVerifier->checkToken($request, null);
+        if (gettype($currentUser) == 'boolean') {
+            return $this->tokenVerifier->sendJsonErrorToken();
+        }
+        if($request->query->has('currentPage')){
+            $currentPage = $request->get('currentPage');  
+            if(!is_numeric($currentPage) || $currentPage < 0) {
+                return $this->json([
+                    'error'=>true,
+                    'message'=>"Le paramètre de pagination est invalide. Veuillez fournir un numéro de page valide."
+                ],400);
+            }
+            $serializedArtists = [];
+            $page = $request->query->getInt('page', $currentPage);
+            $limit = $request->query->getInt('limit', 5);
+            $totalArtist = $this->entityManager->getRepository(Artist::class)->countArtist();
+            $totalPages = ceil($totalArtist/$limit);
+            $allArtists = $this->entityManager->getRepository(Artist::class)->findAllWithPagination($page, $limit); // tous les informations de l'artiste..
+            if($currentPage > $totalPages) {
+                return $this->json([
+                    'error'=>true,
+                    'message'=> "Aucun artiste trouvé pour la page demandée."
+                ],404);
+            }
+            //dd($allArtists);
+            $serializedArtists = [];
+            //dd($allArtists);
+            foreach ($allArtists as $artist) {
+                for( $i = 0; $i < count($artist)-1; $i++ ){
+                    //dd($artist);
+                    array_push($serializedArtists, $artist[$i]->ArtistSerealizer($artist["name"]));
+                }
+            }
+            return $this->json([
+                'error' => false,
+                'artist' => $serializedArtists,
+                'message'=>'Informations des artistes récupérées avec succès.',
+                'pagination'=>[
+                    'currentPage'=>$page,
+                    'totalPages'=>$totalPages,
+                    'totalArtists'=> $totalArtist,
+                ],
+            ], 200);
+        }
+        $fullnameArtistSearch =$fullname;
+        if($fullnameArtistSearch==null){
+            return $this->json([
+                'error'=>true,
+                'message'=>"Le nom d'artiste dest obligatoire pour cette requête."
+            ],400);
+        };
+        if (!preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $fullnameArtistSearch)) {
+            return $this->json([
+                'error'=>true,
+                'message'=>"Le format du nom d'artiste founi est invalide."
+            ],400);
+        }
+        $checkExistFullname = $this->entityManager->getRepository(Artist::class)->findOneBy(['fullname'=>$fullnameArtistSearch]);
+        if($checkExistFullname==null){
+            return $this->json([
+                'error'=>true,
+                'message'=>"Aucun artist trouvé correspondant au nom fourni."
+            ],404);
+        }
+       
+        if($currentUser->getArtist()!=null){
+            $allArtists = $this->entityManager->getRepository(Artist::class)->findAllArtist($fullnameArtistSearch); // tous les informations de l'artiste..
+        foreach ($allArtists as $artist) {
+            for( $i = 0; $i < count($artist)-1; $i++ ){
+                return $this->json([
+                    'error' => false,
+                    'artist' => $artist[$i]->SerealizerArtistFullname($artist["name"]),
+                    'message'=>'Informations des artistes récupérées avec succès.',
+                ], 200);
+            }
+        } 
+        }
+       return $this->json(["user"]);
     }
-
+    
     #[Route('/artist', name: 'app_artist', methods: 'POST')]
     public function readOne(Request $request): JsonResponse
     {

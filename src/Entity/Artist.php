@@ -204,6 +204,22 @@ class Artist
             "Albums"=>$this->serializerInformation($name),
         ];
     }
+    public function SerealizerArtistFullname($name)
+    {
+        $sexe = $this->getUserIdUser()->getSexe() === "0" ? 'Homme' : ($this->getUserIdUser()->getSexe() === "1" ? 'Femme' : ($this->getUserIdUser()->getSexe() === "2" ? 'Non-Binaire': null));
+
+        return [
+            "firstname" =>  $this->getUserIdUser()->getFirstName(),
+            "follower"=>$this->getFollower()->count(),
+            "lastname" => $this->getUserIdUser()->getLastname(),
+            "email" => $this->getUserIdUser()->getEmail(),
+            "tel" => $this->getUserIdUser()->getTel(),
+            "sexe" => $sexe,
+            "dateBirth" => $this->getUserIdUser()->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
+            "Artist.createdAt" => $this->getCreateAt()->format('Y-m-d'),
+            "Albums"=>$this->serializerInformation($name),
+        ];
+    }
     public function serializer(){
         if($this->getActif()==0){
             return null;
