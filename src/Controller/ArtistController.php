@@ -42,7 +42,7 @@ class ArtistController extends AbstractController
         }
         $serializedArtists = [];
         $page = $request->query->getInt('page', $currentPage);
-        $limit = $request->query->getInt('limit', 5);
+        $limit = $request->query->getInt('limit', $limit);
         $totalArtist = $this->entityManager->getRepository(Artist::class)->countArtist();
         $totalPages = ceil($totalArtist/$limit);
         $allArtists = $this->entityManager->getRepository(Artist::class)->findAllWithPagination($page, $limit); // tous les informations de l'artiste..
@@ -87,9 +87,21 @@ class ArtistController extends AbstractController
                     'message'=>"Le paramètre de pagination est invalide. Veuillez fournir un numéro de page valide."
                 ],400);
             }
+            if(!empty($request->get('limit'))){
+                $limite =$request->get('limit');
+                if(!is_numeric($request->get('limit')) || ($request->get('limit')) < 0) {
+                    return $this->json([
+                        'error'=>true,
+                        'message'=>"Le paramètre de limite est invalide. Veuillez fournir un numéro de limite valide."
+                    ],400);
+                }
+            }else{
+                $limite=5;
+            }
             $serializedArtists = [];
+            //dd($limite);
             $page = $request->query->getInt('page', $currentPage);
-            $limit = $request->query->getInt('limit', 5);
+            $limit = $request->query->getInt('limit', $limite);
             $totalArtist = $this->entityManager->getRepository(Artist::class)->countArtist();
             $totalPages = ceil($totalArtist/$limit);
             $allArtists = $this->entityManager->getRepository(Artist::class)->findAllWithPagination($page, $limit); // tous les informations de l'artiste..
@@ -123,7 +135,7 @@ class ArtistController extends AbstractController
         if($fullnameArtistSearch==null){
             return $this->json([
                 'error'=>true,
-                'message'=>"Le nom d'artiste dest obligatoire pour cette requête."
+                'message'=>"Le nom d'artiste est obligatoire pour cette requête."
             ],400);
         };
         if (!preg_match('/^[a-zA-ZÀ-ÿ\-]+$/', $fullnameArtistSearch)) {

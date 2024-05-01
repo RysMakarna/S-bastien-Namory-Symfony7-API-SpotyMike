@@ -49,12 +49,14 @@ class Artist
      */
     #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'following')]
     private Collection $follower;
+    private Collection $featurings;
 
     public function __construct()
     {
         $this->songs = new ArrayCollection();
         $this->albums = new ArrayCollection();
         $this->follower = new ArrayCollection();
+        $this->featurings = new ArrayCollection();
     }
     public function getId(): ?int
     {
@@ -210,14 +212,16 @@ class Artist
 
         return [
             "firstname" =>  $this->getUserIdUser()->getFirstName(),
-            "follower"=>$this->getFollower()->count(),
             "lastname" => $this->getUserIdUser()->getLastname(),
-            "email" => $this->getUserIdUser()->getEmail(),
-            "tel" => $this->getUserIdUser()->getTel(),
+            "avatar"=>"xxxxx",
+            "follower"=>$this->getFollower()->count(),
             "sexe" => $sexe,
             "dateBirth" => $this->getUserIdUser()->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
             "Artist.createdAt" => $this->getCreateAt()->format('Y-m-d'),
-            "Albums"=>$this->serializerInformation($name),
+            "featuring"=>[
+                "Albums"=>$this->serializerInformation($name),
+            ]
+           
         ];
     }
     public function serializer(){
@@ -243,7 +247,6 @@ class Artist
         $serializedAlbums[] = $album->serializer($name);
     }
     
-
     return $serializedAlbums;
     }
 
