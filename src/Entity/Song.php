@@ -182,7 +182,7 @@ class Song
     public function Serializer()
     {
         return[
-            "id"=> $this->getId(),
+            "id"=> $this->getIdSong(),
             "cover"=>$this->getCover(),
             "title"=>$this->getTitle(),
             "createAt"=>$this->getCreateAt()->format('d-m-Y'),
