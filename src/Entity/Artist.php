@@ -12,12 +12,10 @@ use Doctrine\ORM\Mapping as ORM;
 class Artist
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
-    
     #[ORM\OneToOne(inversedBy: 'artist', cascade: ['remove'])]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(name: 'artistId', referencedColumnName: 'idUser', nullable: false)]
+    
+    //#[ORM\OneToMany(targetEntity: Album::class, mappedBy: 'artist_IdUser')]
     private ?User $User_idUser = null;
 
     #[ORM\Column(length: 90,unique:true)]
@@ -31,24 +29,26 @@ class Artist
 
     #[ORM\ManyToMany(targetEntity: Song::class, mappedBy: 'Artist_idUser')]
     private Collection $songs;
-
-    #[ORM\OneToMany(targetEntity: Album::class, mappedBy: 'artist_User_idUser')]
-    private Collection $albums;
     private ?User $user = null;
 
-    #[ORM\OneToMany(targetEntity: ArtistHasLabel::class, mappedBy: 'User_idUser')]
+    #[ORM\OneToMany(targetEntity: ArtistHasLabel::class, mappedBy: 'idArtist',)]
     private Collection $artistHasLabels;
     #[ORM\Column]
     private ?\DateTimeImmutable $createAt = null;
     
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $updateAt = null;
+    private ?\DateTime $updateAt = null;
 
     /**
      * @var Collection<int, User>
      */
     #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'following')]
     private Collection $follower;
+    /**
+     * @var Collection<int, Album>
+     */
+    #[ORM\OneToMany(targetEntity: Album::class, mappedBy: 'Artist_User_idUser',  indexBy: 'idAlbum')]
+ 
     private Collection $featurings;
 
     public function __construct()
@@ -58,10 +58,6 @@ class Artist
         $this->follower = new ArrayCollection();
         $this->featurings = new ArrayCollection();
     }
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
     public function getUser(): ?User
     {
         return $this->user;
@@ -69,6 +65,26 @@ class Artist
     public function getUserIdUser(): ?User
     {
         return $this->User_idUser;
+    }
+    public function serialAlbum()
+    {
+        $sexe = $this->getUserIdUser()->getSexe();
+        $sexe == 0 ? "Femme" : ($this->getUserIdUser()->getSexe() == 1 ? "Homme" : "Homme");
+
+        return [
+            "firstname"=>$this->getUserIdUser()->getFirstname(),
+            "lastname"=> $this->getUserIdUser()->getLastname(),
+            "fullname"=>$this->getFullname(),
+            "follower"=> count($this->getFollower()),
+            "cover"=> '$this->getAvatar()',
+            "sexe"=>$sexe,
+            "dateBirth"=> $this->getUserIdUser()->getBirthday()->format("d-m-Y"),
+            "createdAt"=> $this->getUserIdUser()->getCreateAt(),
+        ];
+    }
+    public function getUserIdUserId(): ?string
+    {
+        return $this->User_idUser->getIdUser();
     }
 
     public function setUserIdUser(User $User_idUser): static
@@ -161,36 +177,6 @@ class Artist
 
         return $this;
     }
-
-    /**
-     * @return Collection<int, Album>
-     */
-    public function getAlbums(): Collection
-    {
-        return $this->albums;
-    }
-
-    public function addAlbum(Album $album): static
-    {
-        if (!$this->albums->contains($album)) {
-            $this->albums->add($album);
-            $album->setArtistUserIdUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAlbum(Album $album): static
-    {
-        if ($this->albums->removeElement($album)) {
-            // set the owning side to null (unless already changed)
-            if ($album->getArtistUserIdUser() === $this) {
-                $album->setArtistUserIdUser(null);
-            }
-        }
-
-        return $this;
-    }
     public function ArtistSerealizer($name)
     {
         $sexe = $this->getUserIdUser()->getSexe() === "0" ? 'Homme' : ($this->getUserIdUser()->getSexe() === "1" ? 'Femme' : ($this->getUserIdUser()->getSexe() === "2" ? 'Non-Binaire': null));
@@ -203,7 +189,7 @@ class Artist
             "sexe" => $sexe,
             "dateBirth" => $this->getUserIdUser()->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
             "Artist.createdAt" => $this->getCreateAt()->format('Y-m-d'),
-            "Albums"=>$this->serializerInformation($name),
+            //"Albums"=>$this->serializerInformation($name),
         ];
     }
     public function SerealizerArtistFullname($name)
@@ -257,6 +243,11 @@ class Artist
     {
         return $this->follower;
     }
+    
+    public function getArtistHasLabel(): Collection
+    {
+        return $this->artistHasLabels;
+    }
     public function addArtistHasLabel(ArtistHasLabel $artistHasLabel): static
     {
         if (!$this->artistHasLabels->contains($artistHasLabel)) {
@@ -294,6 +285,21 @@ class Artist
         if ($this->follower->removeElement($follower)) {
             $follower->removeFollowing($this);
         }
+
+        return $this;
+    }
+    public function getAlbum(): Collection
+    {
+        return $this->album;
+    }
+
+    public function addAlbum(Album $album): static
+    {
+        if ($album->getArtistIdUser() !== $this) {
+            $album->getArtistIdUser();
+        }
+
+        $this->album = $album;
 
         return $this;
     }

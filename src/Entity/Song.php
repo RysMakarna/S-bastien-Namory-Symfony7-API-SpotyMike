@@ -11,11 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Song
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
-
-    #[ORM\Column(length: 90)]
+    #[ORM\Column(name: 'idSong', type:"string", length: 90)]
     private ?string $idSong = null;
 
     #[ORM\Column(length: 255)]
@@ -37,9 +33,13 @@ class Song
     private ?\DateTimeImmutable $createAt = null;
 
     #[ORM\ManyToMany(targetEntity: Artist::class, inversedBy: 'songs')]
+    #[ORM\JoinTable(name: "artist_Id")]
+    #[ORM\JoinColumn(name: "song_id", referencedColumnName: "idSong")]
+    #[ORM\InverseJoinColumn(name: "artist_id", referencedColumnName: "artistId")]
     private Collection $Artist_idUser;
 
     #[ORM\ManyToOne(inversedBy: 'song_idSong', cascade: ['remove'])]
+    #[ORM\JoinColumn(name: 'albumId', referencedColumnName: 'idAlbum', nullable: false)]
     private ?Album $album = null;
 
     #[ORM\ManyToOne(inversedBy: 'Song_idSong')]
@@ -48,11 +48,6 @@ class Song
     public function __construct()
     {
         $this->Artist_idUser = new ArrayCollection();
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
     }
 
     public function getIdSong(): ?string
@@ -187,19 +182,25 @@ class Song
     public function Serializer()
     {
         return[
-            "id"=> $this->getId(),
+            "id"=> $this->getIdSong(),
             "cover"=>$this->getCover(),
             "title"=>$this->getTitle(),
             "createAt"=>$this->getCreateAt()->format('d-m-Y'),
         ];
     }
     public function SerializerUser()
-    {
+    {   
+        $feats = $this->getArtistIdUser();
+        $serializedFeat = [];
+        foreach($feats as $feat){
+            $serializedFeat[] = $feat->serializer();
+        }
         return[
-            "id"=> $this->getId(),
+            "id"=> $this->getIdSong(),
             "cover"=>$this->getCover(),
             "title"=>$this->getTitle(),
             "createAt"=>$this->getCreateAt()->format('d-m-Y'),
+            "featuring" => $feat = null ? [] : $serializedFeat,
         ];
     }
 }

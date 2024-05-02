@@ -11,11 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Label
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
-
-    #[ORM\Column(length: 20)]
+    #[ORM\Column(name: "id_label", type:"string", length: 20)]
     private ?string $id_label = null;
 
     #[ORM\Column(length: 50)]
@@ -36,11 +32,6 @@ class Label
     public function __construct()
     {
         $this->artistHasLabels = new ArrayCollection();
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
     }
 
     public function getIdLabel(): ?string

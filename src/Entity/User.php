@@ -15,13 +15,7 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
-
-
-    // #[ORM\Id]
-    #[ORM\Column(length: 90, unique: true)]
+    #[ORM\Column(name:'idUser', type:"string", length: 90, unique: true)]
     private ?string $idUser = null;
 
     #[ORM\Column(length: 55)]
@@ -36,7 +30,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 15, nullable: true)]
     private ?string $tel = null;
     #[ORM\Column(length: 20)] // Default Value : "Non Précisé" -> Ne sera pas montré à d'autres utilisateurs
-    private ?string $sexe = null;
+    private ?int $sexe = 0;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)] // Sera changé PAR le controller
     private ?\DateTimeInterface $birthday = null;
@@ -63,16 +57,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, Artist>
      */
     #[ORM\ManyToMany(targetEntity: Artist::class, inversedBy: 'follower')]
+    #[ORM\JoinTable(name: "following")]
+    #[ORM\JoinColumn(name: "idUser", referencedColumnName: "idUser")]
+    #[ORM\InverseJoinColumn(name: "artist_id", referencedColumnName: "artistId")]
     private Collection $following;
 
     public function __construct()
     {
         $this->following = new ArrayCollection();
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
     }
 
     public function getIdUser(): ?string
@@ -137,7 +129,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->sexe;
     }
 
-    public function setSexe(string $sexe): static
+    public function setSexe(int $sexe): static
     {
         $this->sexe = $sexe;
 
@@ -259,32 +251,49 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
     public function UserSerialRegis()
     {
-        $sexe = $this->getSexe() === '0' ? 'Homme' : ($this->getSexe() === '1' ? 'Femme' : null);
+        $sexe = $this->getSexe() === 0 ? 'Homme' : ($this->getSexe() === 1 ? 'Femme' : 'Homme');
 
         return [
             "firstname" => $this->getFirstname(),
             "lastname" => $this->getLastname(),
             "email" => $this->getEmail(),
-            "tel" => $this->getTel(),
+            "tel" => $this->getTel() ? $this->getTel() : "",
             "sexe" => $sexe,
             "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
             "createAt" => $this->getCreateAt()->format('d-m-Y'),
+            "updateAt" => $this->getUpdateAt()->format('Y-m-d'),
+
+        ];
+    }
+    public function UserSerialAlbum()
+    {
+        $sexe = $this->getSexe() === 0 ? 'Homme' : ($this->getSexe() === 1 ? 'Femme' : 'Homme');
+
+        return [
+            "firstname" => $this->getFirstname(),
+            "lastname" => $this->getLastname(),
+            "email" => $this->getEmail(),
+            "tel" => $this->getTel() ? $this->getTel() : "",
+            "sexe" => $sexe,
+            "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
+            "createAt" => $this->getCreateAt()->format('d-m-Y'),
+            "updateAt" => $this->getUpdateAt()->format('Y-m-d'),
+
         ];
     }
     public function UserSeriaLogin()
     {
-        $sexe = $this->getSexe() === '0' ? 'Homme' : ($this->getSexe() === '1' ? 'Femme' : null);
+        $sexe = $this->getSexe() === 0 ? 'Homme' : ($this->getSexe() === 1 ? 'Femme' : 'Homme');
 
         return [
             "firstname" => $this->getFirstname(),
             "lastname" => $this->getLastname(),
             "email" => $this->getEmail(),
-            "tel" => $this->getTel(),
+            "tel" => $this->getTel() ? $this->getTel() : "",
             "sexe" => $sexe,
-            "artist"=> $this->getArtist() ? $this->getArtist()->serializer() : null,
+            "artist"=> $this->getArtist() ? $this->getArtist()->serializer() : $this->serialVoid(),
             "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
             "createdAt" => $this->getCreateAt()->format('Y-m-d'),
-            "updateAt" => $this->getUpdateAt()->format('Y-m-d'),
         ];
     }
     public function UserSerial()
@@ -299,6 +308,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             "sexe" => $this->getSexe(),
             "dateBirth" => $this->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
             "createAt" => $this->getCreateAt()->format('Y-m-d'),
+            
         ];
     }
 
@@ -324,5 +334,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->following->removeElement($following);
 
         return $this;
+    }
+
+    public function serialVoid(){
+        return[];
     }
 }

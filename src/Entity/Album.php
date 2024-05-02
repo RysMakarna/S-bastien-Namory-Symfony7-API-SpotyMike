@@ -11,12 +11,9 @@ use Doctrine\DBAL\Types\Types;
 #[ORM\Entity(repositoryClass: AlbumRepository::class)]
 class Album
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
 
-    #[ORM\Column(length: 90)]
+    #[ORM\Id]
+    #[ORM\Column(name:'idAlbum',type:"string", length: 90)]
     private ?string $idAlbum = null;
 
     #[ORM\Column(length: 90)]
@@ -36,22 +33,19 @@ class Album
     #[ORM\Column]
     private ?\DateTimeImmutable $createAt = null;
 
-    #[ORM\ManyToOne(inversedBy: 'albums', cascade: ['remove'])]
-    private ?Artist $artist_User_idUser = null;
-
     #[ORM\OneToMany(targetEntity: Song::class, mappedBy: 'album')]
     private Collection $song_idSong;
     #[ORM\Column]
     private ?bool $visibility = true;
 
+    #[ORM\ManyToOne(inversedBy: 'album')]
+    #[ORM\JoinColumn(name: 'artist_id', referencedColumnName: 'artistId', nullable: false)]
+    private ?Artist $Artist_User_idUser = null;
+
+
     public function __construct()
     {
         $this->song_idSong = new ArrayCollection();
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
     }
 
     public function getIdAlbum(): ?string
@@ -122,18 +116,6 @@ class Album
     {
         return $this;
     }
-
-    public function getArtistUserIdUser(): ?Artist
-    {
-        return $this->artist_User_idUser;
-    }
-
-    public function setArtistUserIdUser(?Artist $artist_User_idUser): static
-    {
-        $this->artist_User_idUser = $artist_User_idUser;
-
-        return $this;
-    }
     public function getCreateAt(): ?\DateTimeImmutable
     {
         return $this->createAt;
@@ -183,7 +165,6 @@ class Album
             $serializedSongs[] = $song->SerializerUser();
         }
         return [
-            "id" => $this->getId(),
             "nom" => $this->getNom(),
             "categ" => $this->getCateg(),
             "cover" => $this->getCover(),
@@ -191,6 +172,26 @@ class Album
             "song" => $songs = null ? [] : $serializedSongs,
             "year" => $this->getYear(),
             "createAt" => $this->getCreateAt()->format('d-m-Y'),
+        ];
+    }
+
+    public function serialOneAlbum()
+    {   
+        $songs = $this->getSongIdSong();
+        $serializedSongs = [];
+        foreach ($songs as $song) {
+            $serializedSongs[] = $song->SerializerUser();
+        }
+        return [
+            "id" => $this->getIdAlbum(),
+            "nom" => $this->getNom(),
+            "categ" => $this->getCateg(),
+            "label" => $this->getArtistIdUser()->getArtistHasLabel()->last(),
+            "cover" => $this->getCover(),
+            "year"=> $this->getYear(),
+            "createAt"=> $this->getCreateAt()->format('d-m-Y'),
+            "songs"=> $songs = null ? [] : $serializedSongs,
+            "artist"=>$this->getArtistIdUser()->serialAlbum(),
         ];
     }
 
@@ -202,6 +203,18 @@ class Album
     public function setVisibility(bool $visibility): static
     {
         $this->visibility = $visibility;
+
+        return $this;
+    }
+
+    public function getArtistIdUser(): ?Artist
+    {
+        return $this->Artist_User_idUser;
+    }
+
+    public function setArtistIdUser(?Artist $Artist_User_idUser): static
+    {
+        $this->Artist_User_idUser = $Artist_User_idUser;
 
         return $this;
     }
