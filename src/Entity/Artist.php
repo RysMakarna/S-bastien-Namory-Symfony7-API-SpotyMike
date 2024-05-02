@@ -37,7 +37,7 @@ class Artist
     private ?\DateTimeImmutable $createAt = null;
     
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?\DateTimeInterface $updateAt = null;
+    private ?\DateTime $updateAt = null;
 
     /**
      * @var Collection<int, User>
@@ -63,6 +63,26 @@ class Artist
     public function getUserIdUser(): ?User
     {
         return $this->User_idUser;
+    }
+    public function serialAlbum()
+    {
+        $sexe = $this->getUserIdUser()->getSexe();
+        $sexe == 0 ? "Femme" : ($this->getUserIdUser()->getSexe() == 1 ? "Homme" : "Homme");
+
+        return [
+            "firstname"=>$this->getUserIdUser()->getFirstname(),
+            "lastname"=> $this->getUserIdUser()->getLastname(),
+            "fullname"=>$this->getFullname(),
+            "follower"=> count($this->getFollower()),
+            "cover"=> '$this->getAvatar()',
+            "sexe"=>$sexe,
+            "dateBirth"=> $this->getUserIdUser()->getBirthday()->format("d-m-Y"),
+            "createdAt"=> $this->getUserIdUser()->getCreateAt(),
+        ];
+    }
+    public function getUserIdUserId(): ?string
+    {
+        return $this->User_idUser->getIdUser();
     }
 
     public function setUserIdUser(User $User_idUser): static
@@ -187,6 +207,11 @@ class Artist
     {
         return $this->follower;
     }
+    
+    public function getArtistHasLabel(): Collection
+    {
+        return $this->artistHasLabels;
+    }
     public function addArtistHasLabel(ArtistHasLabel $artistHasLabel): static
     {
         if (!$this->artistHasLabels->contains($artistHasLabel)) {
@@ -235,7 +260,7 @@ class Artist
     public function addAlbum(Album $album): static
     {
         if ($album->getArtistIdUser() !== $this) {
-            $album->getArtistIdUser($this);
+            $album->getArtistIdUser();
         }
 
         $this->album = $album;

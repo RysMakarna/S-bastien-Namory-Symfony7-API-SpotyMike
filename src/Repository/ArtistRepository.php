@@ -52,7 +52,7 @@ class ArtistRepository extends ServiceEntityRepository
     public function GetExiteFullname($fullname)
     {
         return $this->createQueryBuilder('a')
-            ->select('count(a.id)')
+            ->select('count(a.User_idUser)')
             ->where('a.fullname = :fullname')
             ->setParameter('fullname', $fullname)
             ->getQuery()

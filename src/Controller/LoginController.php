@@ -39,7 +39,7 @@ class LoginController extends AbstractController
     }
 
     #[Route('/login', name: 'app_login_post', methods: 'POST')]
-    public function login(Request $request, UserPasswordHasherInterface $passwordHash ): JsonResponse
+    public function login(Request $request, UserPasswordHasherInterface $passwordHash): JsonResponse
     {
         $email_validation_regex = '/^\\S+@\\S+\\.\\S+$/';
         $password_pattern = '/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,20}$/';
@@ -55,29 +55,29 @@ class LoginController extends AbstractController
             return $this->sendErrorMessage408(false);
         }
 
-        if (!preg_match($password_pattern, $password) || strlen($password)< 8){
+        if (!preg_match($password_pattern, $password) || strlen($password) < 8) {
             return $this->json([
                 'error' => true,
                 'message' => 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et avoir 8 caractères minimun.'
             ], 400);
         }
         // nombre d'erreur ...
+
         $user = $this->repository->findOneBy(['email' => $email]);
         if ($user) {
-            $currentTime = new \DateTime();
-            $UpdateDate = $user->getUpdateAt();
-            if ($user->getActif() == 1) {
+            if ($user->getActif() == 1) { 
+                $currentTime = new \DateTime();
                 if ($user->getnbTentative() >= 5) {
+                    $UpdateDate = $user->getUpdateAt();
                     $diff = $UpdateDate->diff($currentTime);
-                    dd($diff);
-                    $timeLeft = $this->timeLeft($diff);  // verifie le temps
-                    //dd($timeLeft);
-                    if( $timeLeft < '1:00'){
+                    $timeLeft = $diff->i * 60 + $diff->s;  // verifie le temps
+                    if ($timeLeft <= 120) {
+                        $trueTimeLeft = $this->timeLeft($timeLeft);
                         return $this->json([
                             'error' => true,
-                            'message' => 'Trop de tentative sur email ' . $user->getEmail() . " Veuillez patienter ". $timeLeft . " minutes."
+                            'message' => 'Trop de tentative sur email ' . $user->getEmail() . " Veuillez patienter " . $trueTimeLeft[0] . " minutes."
                         ], 429);
-                    }else{
+                    } else {
                         $this->ResetNumberTentative($user);
                     }
                 }
@@ -85,6 +85,7 @@ class LoginController extends AbstractController
                 if (!$passwordHash->isPasswordValid($user, $password)) {
                     $nbt = $user->getnbTentative() + 1;
                     $user->setnbTentative($nbt);
+                    $user->setUpdateAt($currentTime);
                     $this->entityManager->persist($user);
                     $this->entityManager->flush();
                     return $this->sendErrorMessage408(true);
@@ -93,9 +94,9 @@ class LoginController extends AbstractController
                 //$this->repository->findOneBySomeField($id);
                 return $this->json([
                     'error' => false,
-                    'message'=>'L\'utilisateur à été authentifié avec succès.',
+                    'message' => 'L\'utilisateur à été authentifié avec succès.',
                     'user' => $user->UserSeriaLogin(),
-                // Assurez-vous que la méthode serialize() retourne les données au format attendu.  
+                    // Assurez-vous que la méthode serialize() retourne les données au format attendu.  
                     'token' => $this->JWTManager->create($user),
                 ], 200);
 
@@ -116,14 +117,15 @@ class LoginController extends AbstractController
             'message' => ($error) ? 'Email/password manquants.' : 'Le format de l\'email est invalide.'
         ], 400);
     }
-    public function ResetNumberTentative(User $currentUser){
+    public function ResetNumberTentative(User $currentUser)
+    {
         $currentUser->setnbTentative(0);
         $this->entityManager->persist($currentUser);
         $this->entityManager->flush();
     }
 
     #[Route('/register', name: 'app_add_user', methods: ['POST'])]
-  
+
     public function AddUser(Request $request, UserPasswordHasherInterface $passwordHash): JsonResponse
     {
 
@@ -135,168 +137,175 @@ class LoginController extends AbstractController
         $existingUser = $this->repository->findOneBy(['email' => $email]);
 
         $dateBirth = \DateTime::createFromFormat('d/m/Y', $userData['dateBirth']);
-        if ($dateBirth){
+        if ($dateBirth) {
             $DiG = $dateBirth->format('d/m/Y') === $userData['dateBirth']; // DiG means Date is Good
         }
 
-        
+
         //dd($request->get('password'));
         if ($existingUser) {
             return $this->json([
-                "error"=>true,
+                "error" => true,
                 "message" => 'Cet email est déjà utilisé par un autre compte.',
             ], 409);
         }
-        if (!isset($userData['firstname']) || !isset($userData['lastname'])
-        || !preg_match('/^[\p{L} -]{1,60}$/', $userData['firstname'])
-        || !preg_match('/^[\p{L} -]{1,60}$/', $userData['lastname'])) {
+        if (
+            !isset($userData['firstname']) || !isset($userData['lastname'])
+            || !preg_match('/^[a-zA-ZÀ-ÖÙ-öù-ÿĀ-žḀ-ỿ -]{1,60}$/', $userData['firstname'])
+            || !preg_match('/^[a-zA-ZÀ-ÖÙ-öù-ÿĀ-žḀ-ỿ -]{1,60}$/', $userData['lastname'])
+        ) {
             return $this->sendErrorMessage400(4);
         }
         if (!isset($userData['email']) || !preg_match('^\S+@\S+\.\S+$^', $userData['email'])) {
             return $this->sendErrorMessage400(5);
         }
-        if (!isset($userData['password']) || !preg_match('/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,20}$/', $userData['password']) ){
+        if (!isset($userData['password']) || !preg_match('/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?!.* )(?=.*[^a-zA-Z0-9]).{8,20}$/', $userData['password'])) {
             return $this->sendErrorMessage400(6);
         }
-        if (!isset($DiG) || $DiG === false){
+        if (!isset($DiG) || $DiG === false) {
             return $this->sendErrorMessage400(7);
         }
-        if (isset($userData['tel']) && $userData['tel'] !== null){
-            if(!preg_match('^0[1-7][0-9]{8}$^', $userData['tel'])){ //Find why need '' on POSTMAN
+        if (isset($userData['tel']) && $userData['tel'] !== null) {
+            if (!preg_match('^0[1-7][0-9]{8}$^', $userData['tel'])) { //Find why need '' on POSTMAN
                 return $this->sendErrorMessage400(9);
             }
         }
-        if (isset($userData['sexe']) && $userData['sexe'] !== null){
+        if (isset($userData['sexe']) && $userData['sexe'] !== null) {
             $sexe = $userData['sexe'] === '0' ? 0 : ($userData['sexe'] === '1' ? 1 : null);
             if ($sexe === null) {
                 return $this->sendErrorMessage400(10);
             }
         }
-        
+
 
         #Check if User is 12+ YO
         $currentDate = new \DateTime();
-        if ($dateBirth->diff($currentDate)->y < 12){
+        if ($dateBirth->diff($currentDate)->y < 12) {
             return $this->sendErrorMessage400(11);
         }
-                $user = new User();
-                # ID
-                $user->setIdUser(uniqid()); // Will be Modified. Logic to not have twice or more the same ID.
-                # Add Obligatory Values
-                $user->setEmail($email);
-                $user->setFirstname($userData['firstname']);
-                $user->setLastname($userData['lastname']);
-                $birthday = $dateBirth;
-                $user->setBirthday($birthday);
-                # Verify Sex and Tel
-                if (isset($sexe)){
-                    $user->setSexe($sexe);
-                }
-                if (isset($userData['tel'])){            
-                    $user->setTel($userData['tel']);
-                }
-                # Encrypt and Save Password
-                //$encrypte = password_hash($request->get('encrypte'), PASSWORD_DEFAULT);
-                $password = $userData['password'];
+        $user = new User();
+        # ID
+        $user->setIdUser(uniqid()); // Will be Modified. Logic to not have twice or more the same ID.
+        # Add Obligatory Values
+        $user->setEmail($email);
+        $user->setFirstname($userData['firstname']);
+        $user->setLastname($userData['lastname']);
+        $birthday = $dateBirth;
+        $user->setBirthday($birthday);
+        # Verify Sex and Tel
+        if (isset($sexe)) {
+            $user->setSexe($sexe);
+        }
+        if (isset($userData['tel'])) {
+            $user->setTel($userData['tel']);
+        }
+        # Encrypt and Save Password
+        //$encrypte = password_hash($request->get('encrypte'), PASSWORD_DEFAULT);
+        $password = $userData['password'];
 
-                $hash = $passwordHash->hashPassword($user, $password);
-                $user->setPassword($hash);
+        $hash = $passwordHash->hashPassword($user, $password);
+        $user->setPassword($hash);
 
-                # Create and Update Time
-                $user->setCreateAt(new \DateTimeImmutable());
-                $user->setUpdateAt(new \DateTime());
+        # Create and Update Time
+        $user->setCreateAt(new \DateTimeImmutable());
+        $user->setUpdateAt(new \DateTime());
 
-                #Save and Send to db
-                $this->entityManager->persist($user);
-                $this->entityManager->flush();
-                return $this->json([
-                    'error' => false,
-                    'message' => "L'utilisateur a bien été créé avec succès.",
-                    'user' => $user->UserSerialRegis(),
-                ], 201);
+        #Save and Send to db
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+        return $this->json([
+            'error' => false,
+            'message' => "L'utilisateur a bien été créé avec succès.",
+            'user' => $user->UserSerialRegis(),
+        ], 201);
     }
 
-    private function verifyKeys($requestBody){
+    private function verifyKeys($requestBody)
+    {
         $obligatoryKeys = ['firstname', 'lastname', 'email', 'password', 'dateBirth'];
         $allowedKeys = ['tel', 'sexe'];
         $keys = array_keys($requestBody);
         $resultGood = 0;
-        foreach($keys as $key){
-            if (in_array($key, $obligatoryKeys)){
+        foreach ($keys as $key) {
+            if (in_array($key, $obligatoryKeys)) {
                 $resultGood++;
-            } elseif (in_array($key, $allowedKeys)){
+            } elseif (in_array($key, $allowedKeys)) {
                 $resultGood++;
             } else {
                 $resultGood = 0;
             }
         }
-        if ($resultGood < 5){
+        if ($resultGood < 5) {
             return false;
         }
         return true;
     }
 
-    private function sendErrorMessage400(int $codeMessage){
-        switch($codeMessage) {
+    private function sendErrorMessage400(int $codeMessage)
+    {
+        switch ($codeMessage) {
             case 4:
                 return $this->json([
-                    "error"=>true,
-                    "message"=>'Des champs obligatoires sont manquants.',
-                    ],400);
+                    "error" => true,
+                    "message" => 'Des champs obligatoires sont manquants.',
+                ], 400);
             case 5:
                 return $this->json([
-                    "error"=>true,
-                    "message"=>'Le format de l\'email est invalide.',
-                    ],400);
+                    "error" => true,
+                    "message" => 'Le format de l\'email est invalide.',
+                ], 400);
             case 6:
                 return $this->json([
-                    "error"=>true,
-                    "message"=>'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère sépcial et avoir 8 caractères minimum.',
-                    ],400);
+                    "error" => true,
+                    "message" => 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère sépcial et avoir 8 caractères minimum.',
+                ], 400);
             case 7:
                 return $this->json([
-                    "error"=>true,
-                    "message"=>'Le format de la date de naissance est invalide. Le format attendu est JJ/MM/AAAA.',
-                    ],400);
+                    "error" => true,
+                    "message" => 'Le format de la date de naissance est invalide. Le format attendu est JJ/MM/AAAA.',
+                ], 400);
             case 8:
                 return $this->json([
-                    "error"=>true,
-                    "message"=>'L\'utilisateur doit avoir au moins 12 ans.',
-                    ],400);
+                    "error" => true,
+                    "message" => 'L\'utilisateur doit avoir au moins 12 ans.',
+                ], 400);
             case 9:
                 return $this->json([
-                    "error"=>true,
-                    "message"=>'Le format du numéro de téléphone est invalide.',
-                    ],400);
+                    "error" => true,
+                    "message" => 'Le format du numéro de téléphone est invalide.',
+                ], 400);
             case 10:
                 return $this->json([
-                    "error"=>true,
-                    "message"=>'La valeur du champ sexe est invalide. Les valeurs autorisées sont 0 pour Femme, 1 pour Homme.',
-                    ],400);
+                    "error" => true,
+                    "message" => 'La valeur du champ sexe est invalide. Les valeurs autorisées sont 0 pour Femme, 1 pour Homme.',
+                ], 400);
             case 11:
                 return $this->json([
                     'error' => true,
-                    'message' =>"L'utilisateur doit avoir au moins 12 ans.",
+                    'message' => "L'utilisateur doit avoir au moins 12 ans.",
                 ], 400);
             default:
 
         }
     }
 
-    private function timeLeft(\DateInterval $differance){
-        $timeLeft = $differance->i*60 + $differance->s;
-        $min = floor($timeLeft /60);
-        $sec =$timeLeft % 60;
+    private function timeLeft(int $difference)
+    {
+        $min = floor($difference / 60);
+        $sec = $difference % 60;
 
-        $timeString = "";
+        $timeSentence = "";
         if ($min > 0) {
-            $timeString .= $min . ":";
+            $timeSentence .= $min . ":";
+        } else {
+            $timeSentence .= ":";
         }
         if ($sec > 0) {
-            $timeString .= $sec;
+            $sec < 10 ? $timeSentence = "0" . $sec : $timeSentence .= $sec;
+        } else {
+            $timeSentence .= "00";
         }
-
-        return $timeString;
+        return $timeSentence;
     }
 }
 

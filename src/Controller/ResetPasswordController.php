@@ -28,7 +28,7 @@ class ResetPasswordController extends AbstractController
         if(strlen($token)<801){
             return $this->json([
                 'error' =>true, 
-                'message' => 'Token de réinitialisation manquant ou invalide.Veuillez utiliser le lien fourni dans l\'email de réinitialisation de mot de passe',
+                'message' => 'Token de réinitialisation manquant ou invalide. Veuillez utiliser le lien fourni dans l\'email de réinitialisation de mot de passe.',
             ],400);
         }
         $token = $request->get("token");
@@ -36,8 +36,8 @@ class ResetPasswordController extends AbstractController
         if (gettype($currentUser) == 'boolean'){    
             return $this->json([
                 'error'=>true,
-                'Message'=>'Votre token de réinitialisation de mot de passe à expiré.Veuillez refaire une demande de reinitialisation de mot de passe '
-            ],400);
+                'Message'=>'Votre token de réinitialisation de mot de passe a expiré. Veuillez refaire une demande de réinitialisation de mot de passe.'
+            ],410);
         }
         $user = $currentUser;
         $password = $request->get('password');
@@ -45,13 +45,13 @@ class ResetPasswordController extends AbstractController
         if(empty($password)){
             return $this->json([
                 'error'=>true,
-                'message'=> 'Veuillez fourni le nouveau mot de passe'
+                'message'=> 'Veuillez fourni le nouveau mot de passe.'
             ],400);
         }
         if (!preg_match($password_pattern, $password) || strlen($password)< 8){
             return $this->json([
                 'error' => true,
-                'message' => 'Le mot de passe doit contenir au moins une majuscule,une minuscule ,un chiffre,une caractère spécial et avoir 8 caractères minimun '
+                'message' => "Le nouveau mot de passe ne respecte pas les critères requis. Il doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial et être composé d'au moins 8 caractères."
             ], 400);
         }
         $hash = $passwordHash->hashPassword($user, $password) ;
@@ -60,8 +60,8 @@ class ResetPasswordController extends AbstractController
         $this->entityManager->flush();
     
         return $this->json([
-            'error'=>false,
-            'message' => 'Votre mot de passe à été enregistrer avec succès.Vous pouvez vous connnecter avec  notre nouveau mot de passe ',
+            'success'=>true,
+            'message' => 'Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.',
         ],200);
     }
 };

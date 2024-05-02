@@ -54,46 +54,60 @@ class UserController extends AbstractController
         $repository = $this->entityManager->getRepository(User::class);
 
         parse_str($request->getContent(), $userData);
+        if($this->verifyKeys($userData) === false){
+            return $this->sendErrorMessage400(3);
+        }
 
-        $this->verifyKeys($userData) == true ? true : $this->sendErrorMessage400(3);
+        if(isset($userData['firstname'])){
+            if(!preg_match('/^[a-zA-ZÀ-ÖÙ-öù-ÿĀ-žḀ-ỿ -]{1,60}$/', $userData['firstname'])){
+                return $this->json([
+                    "error"=> true,
+                    "message"=> "Erreur de validation des données.",
+                ], 422);
+            }
+            $currentUser->setFirstname($userData['firstname']);
+        }
 
-        if(preg_match('^/^[a-zA-Z -]+.{1,60}$/^', $userData['firstname']) || strlen($userData['firstname']) >=60 
-         || preg_match('^/^[a-zA-Z -]+.{1,60}$/^', $userData['lastname']) || strlen($userData['lastname']) >=60){
-            return $this->json([
-                "error"=> true,
-                "message"=> "Erreur de validation des données.",
-            ], 422);
+        if(isset($userData['lastname'])){
+            if(!preg_match('/^[a-zA-ZÀ-ÖÙ-öù-ÿĀ-žḀ-ỿ -]{1,60}$/', $userData['lastname'])){
+                return $this->json([
+                    "error"=> true,
+                    "message"=> "Erreur de validation des données.",
+                ], 422);
+            }
+            $currentUser->setLastname($userData['lastname']);
         }
         
-        if(!preg_match('^0[1-7][0-9]{8}$^', $userData['tel'])){
-            return $this->sendErrorMessage400(1);
-        }
-
-        $otherUser = $repository->findOneBy(["tel" => $userData['tel']]);
-        if ($otherUser && $currentUser->getEmail() != $otherUser->getEmail()){
-          return $this->json([
-            'error'=> true,
-            "message"=>"Conflit de données. Le numéro est déjà utilisé par un autre utilisateur.",
-          ], 409);
-        }
-        if ($userData['sexe'] !== null){
-            $sexe = $userData['sexe'] === '0' ? 0 : ($userData['sexe'] === '1' ? 1 : ($userData['sexe'] === '2' ? 2 : null));
-            if ($sexe === null) {
-                return $this->sendErrorMessage400(2);
+        if(isset($userData['tel'])){
+            if(!preg_match('^0[1-7][0-9]{8}$^', $userData['tel'])){
+                return $this->sendErrorMessage400(1);
             }
+            $otherUser = $repository->findOneBy(["tel" => $userData['tel']]);
+            if ($otherUser && $currentUser->getEmail() != $otherUser->getEmail()){
+                return $this->json([
+                    'error'=> true,
+                    "message"=>"Conflit de données. Le numéro est déjà utilisé par un autre utilisateur.",
+                ], 409);
+            }
+            $currentUser->setTel($userData['tel']);
         }
-
-        $currentUser->setFirstname($userData['firstname']);
-        $currentUser->setLastname($userData['lastname']);
-        $currentUser->setTel($userData['tel']);
-        $currentUser->setSexe($sexe);
-
+        
+        if (isset($userData['sexe'])){
+            if ($userData['sexe'] !== null){
+                $sexe = $userData['sexe'] === '0' ? 0 : ($userData['sexe'] === '1' ? 1 : ($userData['sexe'] === '2' ? 2 : null));
+                if ($sexe === null) {
+                    return $this->sendErrorMessage400(2);
+                }
+            }
+            $currentUser->setSexe($sexe);
+        }
+        
         $this->entityManager->persist($currentUser);
                 $this->entityManager->flush();
                 return $this->json([
                     'error' => false,
-                    'message' => "Votre inscription a bien été prise en compte.",
-                ], 201);
+                    'message' => "Votre inscription a bien été prise en compte",
+                ], 200);
         }
     #[Route('/password-lost', name: 'app_read_user')]
     public function PasswordLost(Request $request,JWTTokenManagerInterface $jwtManager): JsonResponse
@@ -104,22 +118,22 @@ class UserController extends AbstractController
         if(empty($email)){
             return $this->json([
                 'error'=>true,
-                'message'=> 'L\email manquant.Veuillez fornir votre mail pour la récupération du mot de passe.'
+                'message'=> "Email manquant. Veuillez fournir votre email pour la récupération du mot de passe."
             ],400);
         }
         
         if(!preg_match($email_validation_regex,$email)){
             return $this->json([
             'error'=>true,
-            'message'=> 'Le format de l \'email est invalide.Veuillez entrer un email valide'
+            'message'=> 'Le format de l \'email est invalide.Veuillez entrer un email valide.'
             ],400);
         }
         $current_user =$this->entityManager->getRepository(User::class)->findOneBy(['email'=> $email]);
         if($current_user == null){
             return $this->json([
                 'error'=>true,
-                'message'=> 'Aucun compte  n\'est associé à cet email.Veuillez  vérifier et réssayer'
-            ],403);
+                'message'=> "Aucun compte n'est associé à cet email. Veuillez vérifier et réessayer."
+            ],404);
         }
         $cache = new FilesystemAdapter();
         $cacheKey = 'reset_password_' . urlencode($email);
@@ -132,13 +146,14 @@ class UserController extends AbstractController
         
         if($allTentative >= 3){
             return $this->json([
-                'message' => 'Trop de demande de réinitialisation de mot de passe.Veuillez attendre avant de réessayer dans 5 minutes',
+                "error"=> true,
+                'message' => "Trop de demandes de réinitialisation de mot de passe ( 3 max ). Veuillez attendre avant de réessayer ( Dans 5 min).",
             ], 429);
         }
         $token = $this->tokenVerifier->generateToken($email,time()+120);//Génération du token 
         return $this->json([
             'success'=>true,
-            'message' => 'Un email de réinitialisation de mot de passe à été envoyé à votre adresse email.Veuillez suivre les instructions contenues dans l\'email pour réinitialiser votre mot de passe.',
+            'message' => "Un email de réinitialisation de mot de passe a été envoyé à votre adresse email. Veuillez suivre les instructions contenues dans l'email pour réinitialiser votre mot de passe.",
             'token'=> $token,  
         ], 200);
     }
@@ -158,7 +173,7 @@ class UserController extends AbstractController
                 "message"=>"Le compte est déjà désactivé.",
             ], 409);
         }
-
+        $currentUser->setFirstname($request->get("firstname"));
         $currentUser->setActif(0);
         $artist=$repository->findOneBy(["User_idUser" => $currentUser->getIdUser()]);
         if ($artist){
@@ -177,7 +192,7 @@ class UserController extends AbstractController
         $this->entityManager->flush();
         return $this->json([
             'success' => true,
-            'message' => "Votre compte a été désactivé avec succès. Nous sommes désolé de vous voir partir.",
+            'message' => "Votre compte a été désactivé avec succès. Nous sommes désolés de vous voir partir.",
         ], 200);
 
     }
@@ -186,12 +201,20 @@ class UserController extends AbstractController
         $allowedKeys = ['firstname', 'lastname', 'tel', 'sexe'];
         $keys = array_keys($requestBody);
 
+        $totalKeys = 0;
         foreach($keys as $key){
-            if (!in_array($key, $allowedKeys)){
+            if (in_array($key, $allowedKeys)){
+                $totalKeys++;
+            } else {
                 return false;
             }
         }
-        return true;
+        
+        if ($totalKeys >=1){
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private function sendErrorMessage400(int $errorCode){
@@ -199,17 +222,17 @@ class UserController extends AbstractController
             case 1:
                 return $this->json([
                     "error" => true,
-                    "message" => "Le format du numéro de téléphone est invalide",
+                    "message" => "Le format du numéro de téléphone est invalide.",
                 ], 400);
             case 2:
                 return $this->json([
                     "error"=> true,
-                    "message"=> "La valeur du champ sexe est invalide. Les valeurs autorisées sont 0 pour Femme, 1 pour Homme, 2 pour Non-Binaire",
+                    "message"=> "La valeur du champ sexe est invalide. Les valeurs autorisées sont 0 pour Femme, 1 pour Homme.",
                 ], 400);
             case 3:
                 return $this->json([
                     "error" => true,
-                    "message" => "Les données fournies sont invalides ou incomplètes",
+                    "message" => "Les données fournies sont invalides ou incomplètes.",
                 ], 400);
         } 
     }

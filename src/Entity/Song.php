@@ -189,12 +189,18 @@ class Song
         ];
     }
     public function SerializerUser()
-    {
+    {   
+        $feats = $this->getArtistIdUser();
+        $serializedFeat = [];
+        foreach($feats as $feat){
+            $serializedFeat[] = $feat->serializer();
+        }
         return[
-            "id"=> $this->getId(),
+            "id"=> $this->getIdSong(),
             "cover"=>$this->getCover(),
             "title"=>$this->getTitle(),
             "createAt"=>$this->getCreateAt()->format('d-m-Y'),
+            "featuring" => $feat = null ? [] : $serializedFeat,
         ];
     }
 }

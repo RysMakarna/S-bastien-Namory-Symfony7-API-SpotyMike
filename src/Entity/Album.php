@@ -176,6 +176,26 @@ class Album
         ];
     }
 
+    public function serialOneAlbum()
+    {   
+        $songs = $this->getSongIdSong();
+        $serializedSongs = [];
+        foreach ($songs as $song) {
+            $serializedSongs[] = $song->SerializerUser();
+        }
+        return [
+            "id" => $this->getIdAlbum(),
+            "nom" => $this->getNom(),
+            "categ" => $this->getCateg(),
+            "label" => $this->getArtistIdUser()->getArtistHasLabel()->last(),
+            "cover" => $this->getCover(),
+            "year"=> $this->getYear(),
+            "createAt"=> $this->getCreateAt()->format('d-m-Y'),
+            "songs"=> $songs = null ? [] : $serializedSongs,
+            "artist"=>$this->getArtistIdUser()->serialAlbum(),
+        ];
+    }
+
     public function isVisibility(): ?bool
     {
         return $this->visibility;
