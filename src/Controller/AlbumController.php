@@ -77,7 +77,7 @@ class AlbumController extends AbstractController
 
             $chemin = $this->getParameter('upload_directory') . '/' . $artist->getFullname() . '/' . $albumData['title'];
             mkdir($chemin);
-            file_put_contents($chemin . '/Cover.' + $fileExt[1], $file);
+            file_put_contents($chemin . '/Cover.' . $fileExt[1], $file);
         }
 
         if (preg_match("", $albumData['title']) || preg_match("", $albumData['categorie'])) {
@@ -137,10 +137,9 @@ class AlbumController extends AbstractController
             if (!is_numeric($param['visibility']) || ($param['visibility'] != 0 && $param['visibility'] != 1)) {
                 return $this->sendError400(2);
             }
-            if($this->checkOwner($currentUser, $existeAlbum)!=null){
+            if ($this->checkOwner($currentUser, $existeAlbum) != null) {
                 return $this->checkOwner($currentUser, $existeAlbum);
             }
-            //modifier dans la database 
             $updateVisibility = $existeAlbum->setVisibility($param['visibility']);
             $this->entityManager->persist($updateVisibility);
             $this->entityManager->flush();
@@ -156,9 +155,9 @@ class AlbumController extends AbstractController
             if ($this->verifyCateg($jsoncategories) === false) {
                 return $this->sendError400(3);
             }
-           if($this->checkOwner($currentUser, $existeAlbum)!=null){
-            return $this->checkOwner($currentUser, $existeAlbum);
-           }
+            if ($this->checkOwner($currentUser, $existeAlbum) != null) {
+                return $this->checkOwner($currentUser, $existeAlbum);
+            }
             $updateCategory = $existeAlbum->setCateg($param['categorie']);
             $this->entityManager->persist($updateCategory);
             $this->entityManager->flush();
@@ -169,9 +168,9 @@ class AlbumController extends AbstractController
             if (!preg_match($regexValidatedTitle, $param['title'])) {
                 return $this->sendError422(4);
             }
-            if($this->checkOwner($currentUser, $existeAlbum)!=null){
+            if ($this->checkOwner($currentUser, $existeAlbum) != null) {
                 return $this->checkOwner($currentUser, $existeAlbum);
-               }
+            }
             //récupérer toute les alums de ce artiste
             $allAlbumCurrentUser = $this->entityManager->getRepository(Album::class)->allAlbumForCurrentUser($currentUser->getArtist()->getId());
             //dd($allAlbumCurrentUser);      
@@ -204,18 +203,34 @@ class AlbumController extends AbstractController
             $fileExtension = explode(";", $fileExt[1]);
             if ($fileExtension[0] !== "png" && $fileExtension[0] !== "jpeg") {
                 return $this->sendError422(2);
-            }/*
-           if($fileSize<1.0 || $fileSize >8.0){
-               return $this->sendError422(3);
-           }*/
-           if($this->checkOwner($currentUser, $existeAlbum)!=null){
-            return $this->checkOwner($currentUser, $existeAlbum);
-           }
-            $chemin = $this->getParameter('upload_directory') . '/' . $existeAlbum->getArtistUserIdUser()->getFullname();
-            mkdir($chemin);
-            file_put_contents($chemin . '/file.png', $validedFormat);
-            //enregistrer avec le nom artiste..
-
+            }
+         if($fileSize<1.0 || $fileSize >8.0){
+             return $this->sendError422(3);
+         }
+            if ($this->checkOwner($currentUser, $existeAlbum) != null) {
+                return $this->checkOwner($currentUser, $existeAlbum);
+            }
+            $chemin = $this->getParameter('cover_directory') . '/' . $existeAlbum->getArtistUserIdUser()->getFullname() . '-' . $existeAlbum->getId();
+            //dd($chemin);
+            $path = $chemin . '/Cover.' . $fileExtension[0];
+            //dd($path);
+            if (is_dir($chemin)) {
+                if (!file_exists($path)) {
+                    $contenu = scandir($chemin);
+                    $cheminFichier = $chemin . '/' . $contenu[2];
+                    unlink($cheminFichier);
+                    file_put_contents($path, $validedFormat);
+                    $updateCover = $existeAlbum->setCover($path);
+                    $this->entityManager->persist($updateCover);
+                    $this->entityManager->flush();
+                }
+            } else {
+                mkdir($chemin);
+                file_put_contents($chemin . '/Cover.' . $fileExtension[0], $validedFormat);
+                $sendCover = $existeAlbum->setCover($path);
+                $this->entityManager->persist($sendCover);
+                $this->entityManager->flush();
+            }
         }
         return $this->json([
             'error' => false,
@@ -224,7 +239,41 @@ class AlbumController extends AbstractController
 
 
     }
+    #[Route('/album/{id}/song', name: 'post_album', methods: ['POST'])]
+    public function postAlbumSong(Request $request, int $id): JsonResponse
+    {
+        $currentUser = $this->tokenVerifier->checkToken($request, null);
+        if (gettype($currentUser) == 'boolean') {
+            return $this->tokenVerifier->sendJsonErrorToken();
+        }
+        $existeAlbum = $this->entityManager->getRepository(Album::class)->find(['id' => $id]);
+        if (!$existeAlbum) {
+            return $this->json([
+                'error' => true,
+                'message' => "Aucun album trouvé correspondant au nom fourni."
+            ], 404);
+        }
+        //2 vérification ...
+        $songBinaryData = $request->getContent();
+        $info = new \finfo(FILEINFO_MIME_TYPE);  // Use FILEINFO_MIME_TYPE for MIME type detection
+        $mimeType = $info->buffer($songBinaryData);
+        $dateExplode = explode("/", $mimeType);
+        $fileSizeBytes = strlen($songBinaryData);
+        $fileSizeMb = $fileSizeBytes / 1024 / 1024; // Convert to MB
+        if ($fileSizeMb < 1 || $fileSizeMb > 7) {
+            return $this->sendError422(3);
+        }
+        if ($dateExplode[1] != "WAV" || $dateExplode[1] != "MP3") {
+            return $this->sendError422(2);
+        }
 
+        return $this->json([
+            'error' => false,
+            'message' => "Album mis à jour avec succès.",
+            'idSong' => 'xx'
+        ], 200);
+
+    }
     private function verifyKeys($requestBody, int $obli)
     {
         switch ($obli) {
@@ -274,7 +323,7 @@ class AlbumController extends AbstractController
     }
     private function checkOwner($currentUser, $existeAlbum)
     {
-        $is_artist = $currentUser->getArtist();//l'artiste 1
+        $is_artist = $currentUser->getArtist();
         $idAlbum = $existeAlbum->getArtistUserIdUser()->getId();
         if ($is_artist == null || $is_artist->getActif() == 0 || $is_artist->getId() != $idAlbum) {
             return $this->json([

@@ -49,12 +49,14 @@ class Artist
      */
     #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'following')]
     private Collection $follower;
+    private Collection $featurings;
 
     public function __construct()
     {
         $this->songs = new ArrayCollection();
         $this->albums = new ArrayCollection();
         $this->follower = new ArrayCollection();
+        $this->featurings = new ArrayCollection();
     }
     public function getId(): ?int
     {
@@ -204,6 +206,24 @@ class Artist
             "Albums"=>$this->serializerInformation($name),
         ];
     }
+    public function SerealizerArtistFullname($name)
+    {
+        $sexe = $this->getUserIdUser()->getSexe() === "0" ? 'Homme' : ($this->getUserIdUser()->getSexe() === "1" ? 'Femme' : ($this->getUserIdUser()->getSexe() === "2" ? 'Non-Binaire': null));
+
+        return [
+            "firstname" =>  $this->getUserIdUser()->getFirstName(),
+            "lastname" => $this->getUserIdUser()->getLastname(),
+            "avatar"=>"xxxxx",
+            "follower"=>$this->getFollower()->count(),
+            "sexe" => $sexe,
+            "dateBirth" => $this->getUserIdUser()->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
+            "Artist.createdAt" => $this->getCreateAt()->format('Y-m-d'),
+            "featuring"=>[
+                "Albums"=>$this->serializerInformation($name),
+            ]
+           
+        ];
+    }
     public function serializer(){
         if($this->getActif()==0){
             return null;
@@ -227,7 +247,6 @@ class Artist
         $serializedAlbums[] = $album->serializer($name);
     }
     
-
     return $serializedAlbums;
     }
 

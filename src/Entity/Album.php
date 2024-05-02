@@ -41,7 +41,6 @@ class Album
 
     #[ORM\OneToMany(targetEntity: Song::class, mappedBy: 'album')]
     private Collection $song_idSong;
-
     #[ORM\Column]
     private ?bool $visibility = true;
 
@@ -206,5 +205,4 @@ class Album
 
         return $this;
     }
-
 }

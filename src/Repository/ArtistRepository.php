@@ -87,7 +87,32 @@ class ArtistRepository extends ServiceEntityRepository
     
         return $qb->getQuery()->getResult();
     }
+    public function findAllArtist($fullname)
+    {
+        $entityManager = $this->getEntityManager();
+        $qb = $entityManager->createQueryBuilder();
     
+        $qb->select('ar','l.name')
+            ->from(Artist::class, 'ar')
+            ->leftJoin(Album::class,'a',join::WITH,'a.artist_User_idUser =ar.id')
+            ->leftJoin(ArtistHasLabel::class,'ahl',join::WITH,'ahl.idArtist =ar.id')
+            ->leftJoin(Label::class,'l',join::WITH,'l.id = ahl.id_label')
+            ->andWhere("fullname=ninoh")
+            ->where( 
+                $qb->expr()->orX(
+                    $qb->expr()->between(
+                        'a.createAt',
+                        'ahl.addedAt',
+                        $qb->expr()->literal('COALESCE(ahl.quittedAt, CURRENT_TIMESTAMP())')
+                    ),
+                    $qb->expr()->isNull('l.name'),
+                    $qb->expr()->isNotNull('l.name')
+                )
+                )
+         ->andWhere("ar.fullname = :fullname")
+        ->setParameter('fullname', $fullname);
+        return $qb->getQuery()->getResult();
+    }
     public function countArtist()
     {
         $qb = $this->createQueryBuilder('a')
