@@ -48,13 +48,15 @@ class Artist
      * @var Collection<int, Album>
      */
     #[ORM\OneToMany(targetEntity: Album::class, mappedBy: 'Artist_User_idUser',  indexBy: 'idAlbum')]
-    private Collection $album;
+ 
+    private Collection $featurings;
 
     public function __construct()
     {
         $this->songs = new ArrayCollection();
         $this->albums = new ArrayCollection();
         $this->follower = new ArrayCollection();
+        $this->featurings = new ArrayCollection();
     }
     public function getUser(): ?User
     {
@@ -190,6 +192,24 @@ class Artist
             //"Albums"=>$this->serializerInformation($name),
         ];
     }
+    public function SerealizerArtistFullname($name)
+    {
+        $sexe = $this->getUserIdUser()->getSexe() === "0" ? 'Homme' : ($this->getUserIdUser()->getSexe() === "1" ? 'Femme' : ($this->getUserIdUser()->getSexe() === "2" ? 'Non-Binaire': null));
+
+        return [
+            "firstname" =>  $this->getUserIdUser()->getFirstName(),
+            "lastname" => $this->getUserIdUser()->getLastname(),
+            "avatar"=>"xxxxx",
+            "follower"=>$this->getFollower()->count(),
+            "sexe" => $sexe,
+            "dateBirth" => $this->getUserIdUser()->getBirthday()->format('d-m-Y'), // Will need to be in format('d-m-Y'),
+            "Artist.createdAt" => $this->getCreateAt()->format('Y-m-d'),
+            "featuring"=>[
+                "Albums"=>$this->serializerInformation($name),
+            ]
+           
+        ];
+    }
     public function serializer(){
         if($this->getActif()==0){
             return null;
@@ -198,6 +218,22 @@ class Artist
             "fullname" => $this->getFullname(),
             "description" => $this->getDescription(),
         ];
+    }
+    public function serializerInformation($name){
+        // Vérifier si l'objet est actif
+    if ($this->getActif() == 0) {
+        return null;
+    }
+    $albums = $this->getAlbums();
+    if ($albums === null) {
+        return [];
+    }
+    $serializedAlbums = [];
+    foreach ($albums as $album) {
+        $serializedAlbums[] = $album->serializer($name);
+    }
+    
+    return $serializedAlbums;
     }
 
     /**
